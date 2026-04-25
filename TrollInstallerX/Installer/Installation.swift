@@ -16,44 +16,30 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
         Logger.log("索引下载失败", type: .warning)
         return false
     }
-    guard let indexJSON = try? JSONSerialization.jsonObject(with: indexData, options: []) as? [String: Any] else {
+    guard let indexArray = try? JSONSerialization.jsonObject(with: indexData, options: []) as? [[String: Any]] else {
         Logger.log("索引解析失败", type: .warning)
         return false
     }
-    var kernelFilename: String? = nil
-    if let deviceDict = indexJSON[modelID] as? [String: Any] {
-        if let exactFile = deviceDict[versionStr] as? String {
-            kernelFilename = exactFile
-        } else {
-            for (key, value) in deviceDict {
-                if versionStr.hasPrefix(key) || key.hasPrefix(versionStr) {
-                    kernelFilename = value as? String
-                    break
-                }
+    var downloadURL: String? = nil
+    var bestMatch: [String: Any]? = nil
+    var bestMatchLen = 0
+    for item in indexArray {
+        guard let itemModel = item["model"] as? String else { continue }
+        guard let itemVersion = item["version"] as? String else { continue }
+        if itemModel == modelID && (versionStr.hasPrefix(itemVersion) || itemVersion.hasPrefix(versionStr)) {
+            if itemVersion.count > bestMatchLen {
+                bestMatch = item
+                bestMatchLen = itemVersion.count
+                downloadURL = item["url"] as? String
             }
         }
     }
-    if kernelFilename == nil {
-        for (key, value) in indexJSON {
-            if let deviceDict = value as? [String: Any] {
-                for (verKey, fileName) in deviceDict {
-                    if key == modelID && (versionStr.hasPrefix(verKey) || verKey.hasPrefix(versionStr)) {
-                        kernelFilename = fileName as? String
-                        break
-                    }
-                }
-            }
-            if kernelFilename != nil { break }
-        }
-    }
-    guard let filename = kernelFilename else {
+    guard let url = downloadURL else {
         Logger.log("未找到匹配的内核 (设备:\(modelID) 版本:\(versionStr))", type: .warning)
         return false
     }
-    Logger.log("找到内核: \(filename)")
-    let encodedFilename = filename.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? filename
-    let downloadURL = CF_KERNEL_PROXY + "/" + encodedFilename
-    guard let kernelData = try? Data(contentsOf: URL(string: downloadURL)!) else {
+    Logger.log("找到内核: \(url)")
+    guard let kernelData = try? Data(contentsOf: URL(string: url)!) else {
         Logger.log("内核下载失败", type: .warning)
         return false
     }
