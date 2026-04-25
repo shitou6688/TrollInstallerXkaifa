@@ -11,12 +11,10 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
     let versionStr = device.version.readableString
     let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
     
-    let baseUrl = "https://kernel0.jumo8.top/download/iphone-kernelcache"
-    
     // 尝试下载：精确版本
-    let exactURL = "\(baseUrl)/\(fixedModel)_\(versionStr).kernelcache"
+    let exactURL = "https://kernel0.jumo8.top/\(fixedModel)_\(versionStr).kernelcache"
     if let data = try? Data(contentsOf: URL(string: exactURL)!) {
-        if data.count > 10000 {
+        if data.count > 100000 {
             do {
                 try data.write(to: URL(fileURLWithPath: kernelPath))
                 Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
@@ -31,9 +29,9 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
     let parts = versionStr.split(separator: ".")
     if parts.count >= 2 {
         let shortVersion = "\(parts[0]).\(parts[1])"
-        let fallbackURL = "\(baseUrl)/\(fixedModel)_\(shortVersion).kernelcache"
+        let fallbackURL = "https://kernel0.jumo8.top/\(fixedModel)_\(shortVersion).kernelcache"
         if let data = try? Data(contentsOf: URL(string: fallbackURL)!) {
-            if data.count > 10000 {
+            if data.count > 100000 {
                 do {
                     try data.write(to: URL(fileURLWithPath: kernelPath))
                     Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
