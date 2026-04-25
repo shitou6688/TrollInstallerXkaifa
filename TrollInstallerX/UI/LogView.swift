@@ -18,9 +18,11 @@ struct LogView: View {
     
     @State var verboseID = UUID()
     
+    @State private var showKernelTimeoutAlert = false
     
     var body: some View {
         GeometryReader { geometry in
+            ZStack {
             ScrollViewReader { proxy in
                 ScrollView {
                     if verbose {
@@ -109,6 +111,56 @@ struct LogView: View {
                     UIPasteboard.general.string = verbose ? stdoutString : Logger.shared.logString
                 } label: {
                     Label("复制到剪贴板", systemImage: "doc.on.doc")
+                    }
+                }
+                if showKernelTimeoutAlert {
+                    VStack(spacing: 18) {
+                        Text("网络连接较慢/被阻断")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.black)
+                        Text("请点击《点我下载》然后打开，连接好VPN，重新打开安装器，安装巨魔。\n\n如已连接VPN，请点击下方重试。")
+                            .font(.system(size: 15))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                if let url = URL(string: "https://apps.apple.com/cn/app/%E9%A6%99%E8%95%89%E5%8A%A0%E9%80%9F%E5%99%A8-vpn%E5%85%A8%E7%90%83%E7%BD%91%E7%BB%9C%E5%8A%A0%E9%80%9F%E5%99%A8/id6740848082") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                Text("点我下载")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.blue)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(8)
+                            }
+                            Button(action: {
+                                showKernelTimeoutAlert = false
+                                // 可选：触发重试逻辑
+                            }) {
+                                Text("我已连接VPN，重试安装")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.blue)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 8)
+                                    .background(Color.white.opacity(0.2))
+                                    .cornerRadius(8)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 16).foregroundColor(.white))
+                    .frame(maxWidth: 340)
+                    .shadow(radius: 20)
+                }
+            }
+        }
+        .onChange(of: logger.logItems) { items in
+            if items.last?.message.contains("长时间无响应") == true {
+                withAnimation {
+                    showKernelTimeoutAlert = true
                 }
             }
         }

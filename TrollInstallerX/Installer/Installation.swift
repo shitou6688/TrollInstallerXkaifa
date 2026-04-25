@@ -1,51 +1,43 @@
 //
-//  Installation.swift
-//  TrollInstallerX
-//
-//  Created by Alfie on 22/03/2024.
-//
 // ===== 内核镜像下载 =====
 func downloadKernelFromMirror(_ device: Device) -> Bool {
     Logger.log("正在从镜像源下载内核...")
     let modelID = device.modelIdentifier
     let versionStr = device.version.readableString
     let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
-    
-    // 尝试下载：精确版本
     let exactURL = "https://kernel0.jumo8.top/\(fixedModel)_\(versionStr).kernelcache"
     if let data = try? Data(contentsOf: URL(string: exactURL)!) {
         if data.count > 100000 {
             do {
                 try data.write(to: URL(fileURLWithPath: kernelPath))
-                Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
+                Logger.log("镜像下载成功", type: .success)
                 return true
-            } catch {
-                Logger.log("内核保存失败", type: .error)
-            }
+            } catch { Logger.log("内核保存失败", type: .error) }
         }
     }
-    
-    // 回退：只保留大版本号（比如 16.1.2 → 16.1）
     let parts = versionStr.split(separator: ".")
     if parts.count >= 2 {
-        let shortVersion = "\(parts[0]).\(parts[1])"
+        let shortVersion = "\((parts[0])).\((parts[1]))"
         let fallbackURL = "https://kernel0.jumo8.top/\(fixedModel)_\(shortVersion).kernelcache"
         if let data = try? Data(contentsOf: URL(string: fallbackURL)!) {
             if data.count > 100000 {
                 do {
                     try data.write(to: URL(fileURLWithPath: kernelPath))
-                    Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
+                    Logger.log("镜像下载成功", type: .success)
                     return true
-                } catch {
-                    Logger.log("内核保存失败", type: .error)
-                }
+                } catch { Logger.log("内核保存失败", type: .error) }
             }
         }
     }
-    
-    Logger.log("未找到匹配的内核 (设备:\(modelID) 版本:\(versionStr))", type: .warning)
+    Logger.log("镜像下载未找到匹配内核", type: .warning)
     return false
 }
+//  Installation.swift
+//  TrollInstallerX
+//
+//  Created by Alfie on 22/03/2024.
+//
+
 import SwiftUI
 
 let fileManager = FileManager.default
@@ -59,37 +51,70 @@ func checkForMDCUnsandbox() -> Bool {
 }
 
 func getKernel(_ device: Device) -> Bool {
-    if !fileManager.fileExists(atPath: kernelPath) {
-        if fileManager.fileExists(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "") ?? "") {
-            try? fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
-            if fileManager.fileExists(atPath: kernelPath) { return true }
+    Logger.log("正在下载内核(不要切屏)请稍等...")
+    
+    // 创建一个信号量，用于控制超时
+    let semaphore = DispatchSemaphore(value: 0)
+    var kernelDownloaded = false
+    
+    // 超时提示
+    DispatchQueue.global().asyncAfter(deadline: .now() + 120) { // 2分钟
+        if !kernelDownloaded {
+            Logger.log("长时间无响应，请关机重启一下，或者换流量再来点。", type: .warning)
         }
+    }
+    
+    while true {  // 持续尝试直到成功
+        if fileManager.fileExists(atPath: kernelPath) {
+            Logger.log("内核缓存已存在")
+            kernelDownloaded = true
+            return true
+        }
+        
+        // 检查是否有捆绑的内核缓存
+        if fileManager.fileExists(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "") ?? "") {
+            do {
+                try fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
+                if fileManager.fileExists(atPath: kernelPath) { 
+                    Logger.log("已使用捆绑的内核缓存文件")
+                    kernelDownloaded = true
+                    return true 
+                }
+            } catch {
+                Logger.log("复制捆绑内核缓存失败: \(error.localizedDescription)", type: .error)
+            }
+        }
+        
+        // 使用MacDirtyCow尝试获取内核缓存
         if MacDirtyCow.supports(device) && checkForMDCUnsandbox() {
             let fd = open(docsDir + "/full_disk_access_sandbox_token.txt", O_RDONLY)
             if fd > 0 {
                 let tokenData = get_NSString_from_file(fd)
                 sandbox_extension_consume(tokenData)
-                Logger.log("正在复制内核缓存")
                 let path = get_kernelcache_path()
                 do {
                     try fileManager.copyItem(atPath: path!, toPath: kernelPath)
+                    Logger.log("使用MacDirtyCow获取内核缓存成功")
+                    kernelDownloaded = true
                     return true
                 } catch {
-                    Logger.log("复制内核缓存失败", type: .error)
-                    NSLog("Failed to copy kernelcache - \(error)")
+                    Logger.log("复制内核缓存失败: \(error.localizedDescription)", type: .error)
                 }
             }
         }
-               if !downloadKernelFromMirror(device) {
-            Logger.log("回退到原始下载...")
-            if !grab_kernelcache(kernelPath) {
-                Logger.log("下载内核失败", type: .error)
-                return false
-            }
+        
+        // 尝试下载内核
+if downloadKernelFromMirror(device) {
+    Logger.log("内核下载成功")
+    kernelDownloaded = true
+    return true
+}
+        if grab_kernelcache(kernelPath) {
+            Logger.log("内核下载成功")
+            kernelDownloaded = true
+            return true
         }
     }
-    
-    return true
 }
 
 
@@ -121,6 +146,37 @@ func getCandidates() -> [InstalledApp] {
     return apps
 }
 
+func tryInstallPersistenceHelper(_ candidates: [InstalledApp]) -> Bool {
+    for candidate in candidates {
+        Logger.log("正在尝试安装持久性助手到 \(candidate.displayName)")
+        if install_persistence_helper(candidate.bundleIdentifier) {
+            Logger.log("成功安装持久性助手到 \(candidate.displayName)！", type: .success)
+            return true
+        }
+        Logger.log("安装失败，尝试下一个应用", type: .error)
+    }
+    Logger.log("所有应用都安装失败", type: .error)
+    return false
+}
+
+// 添加内核查找函数的更健壮版本
+func robustInitialiseKernelInfo(_ kernelPath: String, _ iOS14: Bool) -> Bool {
+    for attempt in 1...3 {
+        Logger.log("正在查找内核漏洞 (尝试 \(attempt)/3)")
+        if initialise_kernel_info(kernelPath, iOS14) {
+            Logger.log("查找内核漏洞成功")
+            return true
+        }
+        
+        Logger.log("查找内核漏洞失败，将尝试重试", type: .error)
+        // 短暂等待后重试
+        sleep(1)
+    }
+    
+    Logger.log("查找内核漏洞失败，已尝试3次", type: .error)
+    return false
+}
+
 @discardableResult
 func doDirectInstall(_ device: Device) async -> Bool {
     
@@ -139,7 +195,7 @@ func doDirectInstall(_ device: Device) async -> Bool {
     }
     
     Logger.log("正在查找内核漏洞")
-    if !initialise_kernel_info(kernelPath, iOS14) {
+    if !robustInitialiseKernelInfo(kernelPath, iOS14) {
         Logger.log("查找内核漏洞失败", type: .error)
         return false
     }
@@ -238,19 +294,9 @@ func doDirectInstall(_ device: Device) async -> Bool {
     let newCandidates = getCandidates()
     persistenceHelperCandidates = newCandidates
     
-    DispatchQueue.main.sync {
-        HelperAlert.shared.showAlert = true
-        HelperAlert.shared.objectWillChange.send()
-    }
-    while HelperAlert.shared.showAlert { }
-    let persistenceID = TIXDefaults().string(forKey: "persistenceHelper")
-    
-    if persistenceID != "" {
-        if install_persistence_helper(persistenceID) {
-            Logger.log("成功安装持久性助手！", type: .success)
-        } else {
-            Logger.log("安装持久性助手失败", type: .error)
-        }
+    // 自动尝试安装持久性助手
+    if !tryInstallPersistenceHelper(newCandidates) {
+        Logger.log("无法安装持久性助手", type: .error)
     }
     
     Logger.log("正在安装 TrollStore")
@@ -258,6 +304,8 @@ func doDirectInstall(_ device: Device) async -> Bool {
         Logger.log("安装 TrollStore 失败", type: .error)
     } else {
         Logger.log("成功安装 TrollStore！", type: .success)
+        Logger.log("巨魔已安装成功，返回桌面查找大头巨魔！", type: .success)
+        Logger.log("如无显示，请在桌面右滑到资源库，搜 troll（没有的话重启一下）", type: .warning)
     }
     
     if !cleanupPrivatePreboot() {
@@ -295,7 +343,7 @@ func doIndirectInstall(_ device: Device) async -> Bool {
     }
     
     Logger.log("正在查找内核漏洞")
-    if !initialise_kernel_info(kernelPath, false) {
+    if !robustInitialiseKernelInfo(kernelPath, false) {
         Logger.log("查找内核漏洞失败", type: .error)
         return false
     }
@@ -313,15 +361,6 @@ func doIndirectInstall(_ device: Device) async -> Bool {
     Logger.log("成功利用内核", type: .success)
     post_kernel_exploit(false)
     
-    var path: UnsafePointer<CChar>? = nil
-    let pathPointer = withUnsafeMutablePointer(to: &path) { ptr in
-        UnsafeMutablePointer<UnsafePointer<CChar>?>.init(ptr)
-    }
-    if is_persistence_helper_installed(pathPointer) {
-        Logger.log("持久性助手已安装! (\(path == nil ? "unknown" : String(cString: path!)))", type: .warning)
-        return false
-    }
-    
     let apps = get_installed_apps() as? [String]
     var candidates = [InstalledApp]()
     for app in apps ?? [String]() {
@@ -337,35 +376,36 @@ func doIndirectInstall(_ device: Device) async -> Bool {
     
     persistenceHelperCandidates = candidates
     
-    DispatchQueue.main.sync {
-        HelperAlert.shared.showAlert = true
-        HelperAlert.shared.objectWillChange.send()
-    }
-    while HelperAlert.shared.showAlert { }
-    let persistenceID = TIXDefaults().string(forKey: "persistenceHelper")
-    
-    var pathToInstall = ""
-    for candidate in persistenceHelperCandidates {
-        if persistenceID == candidate.bundleIdentifier {
-            pathToInstall = candidate.bundlePath!
+    // 自动选择第一个可用的应用作为持久性助手
+    if let firstCandidate = candidates.first {
+        Logger.log("正在自动注入持久性助手到 \(firstCandidate.displayName)")
+        let pathToInstall = firstCandidate.bundlePath!
+        var success = false
+        if !install_persistence_helper_via_vnode(pathToInstall) {
+            Logger.log("安装持久性助手失败", type: .error)
+            Logger.log("重启手机后，请再来点击安装！", type: .warning)
+            Logger.log("5秒后注销...", type: .warning)
+            DispatchQueue.global().async {
+                sleep(5)
+                restartBackboard()
+            }
+        } else {
+            Logger.log("成功安装持久性助手", type: .success)
+            Logger.log("返回桌面打开\"\(firstCandidate.displayName)\"这个软件。（找不到这个软件，桌面上搜一下。）", type: .warning)
+            success = true
         }
-    }
-    var success = false
-    if !install_persistence_helper_via_vnode(pathToInstall) {
-        Logger.log("安装持久性助手失败", type: .error)
-    } else {
-        Logger.log("成功安装持久性助手", type: .success)
-        success = true
-    }
-    
-    if success {
-        let verbose = TIXDefaults().bool(forKey: "verbose")
-        Logger.log("\(verbose ? "15" : "5") 秒后注销")
-        DispatchQueue.global().async {
-            sleep(verbose ? 15 : 5)
-            restartBackboard()
+        
+        if success {
+            let verbose = TIXDefaults().bool(forKey: "verbose")
+            Logger.log("\(verbose ? "15" : "5") 秒后注销")
+            DispatchQueue.global().async {
+                sleep(verbose ? 15 : 5)
+                restartBackboard()
+            }
         }
+        return true
     }
     
-    return true
+    Logger.log("未找到可用的应用来安装持久性助手", type: .error)
+    return false
 }
