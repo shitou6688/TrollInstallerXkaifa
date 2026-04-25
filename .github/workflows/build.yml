@@ -51,14 +51,8 @@ jobs:
           chmod +x ./build.sh
           ./build.sh
 
-      - name: Release ipa
-        uses: softprops/action-gh-release@v1
+            - name: Upload ipa artifact
+        uses: actions/upload-artifact@v4
         with:
           name: TrollInstallerX_${{ env.VERSION }}
-          tag_name: ${{ env.VERSION }}
-          target_commitish: main
-          body_path: release.txt
-          latest: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-           *.ipa
+          path: "*.ipa"
