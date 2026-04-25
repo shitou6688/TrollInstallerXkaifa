@@ -162,6 +162,7 @@ struct MainView: View {
                     }
                 }
             }
+.checkActivation()
             .onAppear {
                 if device.isSupported {
                     withAnimation {
