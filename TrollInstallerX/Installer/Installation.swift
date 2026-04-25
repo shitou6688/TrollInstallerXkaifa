@@ -10,7 +10,7 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
     let modelID = device.modelIdentifier
     let versionStr = device.version.readableString
     
-    let baseUrl = "https://github.lengye.top/download/iphone-kernelcache"
+    let baseUrl = "https://kernel0.jumo8.top/download/iphone-kernelcache"
     
     // 尝试下载：精确版本
     let exactURL = "\(baseUrl)/\(modelID)_\(versionStr).kernelcache"
