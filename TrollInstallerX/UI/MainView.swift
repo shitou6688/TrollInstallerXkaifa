@@ -45,7 +45,8 @@ struct ActivationView: View {
         guard !kamiText.isEmpty else { return }
         isLoading = true; errorMessage = ""
         let encodedKami = kamiText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kamiText
-        guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10003&kami=\(encodedKami)") else { isLoading = false; return }
+        let markcode = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10003&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             DispatchQueue.main.async {
                 isLoading = false
