@@ -1,10 +1,3 @@
-//
-// LaunchView.swift
-// TrollInstallerX
-//
-// Created by Alfie on 22/03/2024.
-//
-
 import SwiftUI
 
 struct ActivationView: View {
@@ -46,7 +39,7 @@ struct ActivationView: View {
         isLoading = true; errorMessage = ""
         let encodedKami = kamiText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kamiText
         let markcode = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
-guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
+        guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10003&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             DispatchQueue.main.async {
                 isLoading = false
@@ -73,142 +66,204 @@ struct MainView: View {
     @ObservedObject var helperView = HelperAlert.shared
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ZStack {
-                    LinearGradient(colors: [Color(hex: 0x0482d1), Color(hex: 0x0566ed)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        .ignoresSafeArea()
-                    VStack {
-                        VStack {
-                            Image("Icon")
-                                .resizable()
-                                .cornerRadius(22)
-                                .frame(maxWidth: 100, maxHeight: 100)
-                                .shadow(radius: 10)
-                            Text("TrollInstallerX")
-                                .font(.system(size: 30, weight: .semibold, design: .rounded))
+        ZStack {
+            LinearGradient(colors: [Color(red: 0.15, green: 0.55, blue: 0.95), Color(red: 0.1, green: 0.25, blue: 0.75)], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+
+            VStack {
+                Spacer()
+
+                Image("Icon")
+                    .resizable()
+                    .cornerRadius(22)
+                    .frame(width: 120, height: 120)
+                    .shadow(radius: 10)
+
+                Text("巨魔安装器")
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
+
+                Text("iOS 14.0 - 16.6.1")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.7))
+                    .padding(.top, 1)
+
+                Spacer()
+
+                if !isInstalling {
+                    VStack(spacing: 16) {
+                        Button(action: {
+                            if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
+                                UIImpactFeedbackGenerator().impactOccurred()
+                                withAnimation { isInstalling.toggle() }
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                VStack(spacing: 2) {
+                                    Text("开始安装")
+                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                    Text("一键安装巨魔商店")
+                                        .font(.system(size: 13, design: .rounded))
+                                        .foregroundColor(.white.opacity(0.8))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 16)
+                            .background(
+                                LinearGradient(colors: [Color(red: 1.0, green: 0.4, blue: 0.2), Color(red: 1.0, green: 0.55, blue: 0.1)], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .cornerRadius(16)
+                            .shadow(color: Color.orange.opacity(0.3), radius: 10, x: 0, y: 5)
+                        }
+
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                if let url = URL(string: "https://wa.me/") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "message.fill")
+                                        .font(.system(size: 14))
+                                    Text("联系客服")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
                                 .foregroundColor(.white)
-                            Text("开发者：Alfie CG")
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
-                            Text("iOS 14.0 - 16.6.1")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
-                        }
-                        .padding(.vertical)
-                        if !isInstalling {
-                            MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
-                                .frame(maxWidth: geometry.size.width / 1.2, maxHeight: geometry.size.height / 4)
-                                .transition(.scale)
-                                .padding()
-                                .shadow(radius: 10)
-                                .disabled(!device.isSupported)
-                        }
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .foregroundColor(.white.opacity(0.15))
-                                .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
-                                .transition(.scale)
-                                .shadow(radius: 10)
-                            if isInstalling {
-                                LogView(installationFinished: $installationFinished)
-                                    .padding()
-                                    .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: geometry.size.height / 1.75)
-                            } else {
-                                Button(action: {
-                                    if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                                        UIImpactFeedbackGenerator().impactOccurred()
-                                        withAnimation { isInstalling.toggle() }
-                                    }
-                                }, label: {
-                                    Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                        .foregroundColor(device.isSupported ? .white : .secondary)
-                                        .padding()
-                                        .frame(maxWidth: geometry.size.width / 1.2)
-                                        .frame(maxHeight: 60)
-                                })
-                                .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: 60)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(red: 0.2, green: 0.7, blue: 0.3))
+                                .cornerRadius(12)
+                            }
+
+                            Button(action: {
+                                if let url = URL(string: "https://ipa.jumo8.top") {
+                                    UIApplication.shared.open(url)
+                                }
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "questionmark.circle.fill")
+                                        .font(.system(size: 14))
+                                    Text("帮助教程")
+                                        .font(.system(size: 14, weight: .medium))
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity)
+                                .background(Color(red: 0.2, green: 0.5, blue: 0.9))
+                                .cornerRadius(12)
                             }
                         }
-                        .padding()
-                        .disabled(!device.isSupported)
                     }
-                    .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
-                }
-                if isShowingOTAAlert {
-                    PopupView(isShowingAlert: $isShowingOTAAlert, content: {
-                        TrollHelperOTAView(arm64eVersion: .constant(false))
-                    })
-                }
-                if isShowingMDCAlert {
-                    PopupView(isShowingAlert: $isShowingMDCAlert, shouldAllowDismiss: false, content: {
-                        UnsandboxView(isShowingMDCAlert: $isShowingMDCAlert)
-                    })
-                }
-                if isShowingSettings {
-                    PopupView(isShowingAlert: $isShowingSettings, content: {
-                        SettingsView(device: device)
-                    })
-                }
-                if isShowingCredits {
-                    PopupView(isShowingAlert: $isShowingCredits, content: {
-                        CreditsView()
-                    })
-                }
-                if helperView.showAlert {
-                    PopupView(isShowingAlert: $isShowingHelperAlert, shouldAllowDismiss: false, content: {
-                        PersistenceHelperView(isShowingHelperAlert: $isShowingHelperAlert, allowNoPersistenceHelper: device.supportsDirectInstall)
-                    })
-                }
-                if showActivation {
+                    .padding(.horizontal, 24)
+                } else {
                     ZStack {
-                        Color.black.opacity(0.8).ignoresSafeArea()
-                        ActivationView {
-                            withAnimation { showActivation = false }
-                        }
+                        RoundedRectangle(cornerRadius: 12)
+                            .foregroundColor(.white.opacity(0.15))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(.horizontal, 24)
+                            .padding(.bottom, 80)
+                        LogView(installationFinished: $installationFinished)
+                            .padding(16)
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                Spacer().frame(height: 40)
+            }
+            .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
+
+            if isShowingOTAAlert {
+                PopupView(isShowingAlert: $isShowingOTAAlert, content: {
+                    TrollHelperOTAView(arm64eVersion: .constant(false))
+                })
+            }
+            if isShowingMDCAlert {
+                PopupView(isShowingAlert: $isShowingMDCAlert, shouldAllowDismiss: false, content: {
+                    UnsandboxView(isShowingMDCAlert: $isShowingMDCAlert)
+                })
+            }
+            if isShowingSettings {
+                PopupView(isShowingAlert: $isShowingSettings, content: {
+                    SettingsView(device: device)
+                })
+            }
+            if isShowingCredits {
+                PopupView(isShowingAlert: $isShowingCredits, content: {
+                    CreditsView()
+                })
+            }
+            if helperView.showAlert {
+                PopupView(isShowingAlert: $isShowingHelperAlert, shouldAllowDismiss: false, content: {
+                    PersistenceHelperView(isShowingHelperAlert: $isShowingHelperAlert, allowNoPersistenceHelper: device.supportsDirectInstall)
+                })
+            }
+            if showActivation {
+                ZStack {
+                    Color.black.opacity(0.8).ignoresSafeArea()
+                    ActivationView {
+                        withAnimation { showActivation = false }
                     }
                 }
             }
-            .onChange(of: helperView.showAlert) { new in
-                if new { withAnimation { isShowingHelperAlert = true } }
-            }
-            .onChange(of: isShowingHelperAlert) { new in
-                if !new { helperView.showAlert = false }
-            }
-            .onChange(of: isInstalling) { _ in
-                Task {
-                    if device.isSupported {
-                        if device.supportsDirectInstall {
-                            installedSuccessfully = await doDirectInstall(device)
-                        } else {
-                            installedSuccessfully = await doIndirectInstall(device)
-                        }
-                        installationFinished = true
-                    }
-                    UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
-                }
-            }
-            .onChange(of: isShowingOTAAlert) { new in
-                if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
-            }
-            .onAppear {
-                if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
+        }
+        .onChange(of: helperView.showAlert) { new in
+            if new { withAnimation { isShowingHelperAlert = true } }
+        }
+        .onChange(of: isShowingHelperAlert) { new in
+            if !new { helperView.showAlert = false }
+        }
+        .onChange(of: isInstalling) { _ in
+            Task {
                 if device.isSupported {
-                    withAnimation {
-                        isShowingOTAAlert = device.supportsOTA
-                        if !isShowingOTAAlert { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) }
+                    if device.supportsDirectInstall {
+                        installedSuccessfully = await doDirectInstall(device)
+                    } else {
+                        installedSuccessfully = await doIndirectInstall(device)
+                    }
+                    installationFinished = true
+                }
+                UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
+            }
+        }
+        .onChange(of: isShowingOTAAlert) { new in
+            if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
+        }
+        .onAppear {
+            if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
+            if device.isSupported {
+                withAnimation {
+                    isShowingOTAAlert = device.supportsOTA
+                    if !isShowingOTAAlert {
+                        if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) {
+                            Logger.log("自动解除沙盒...")
+                            grant_full_disk_access({ error in
+                                if error != nil {
+                                    Logger.log("解除沙盒失败: \(error.localizedDescription)", type: .error)
+                                } else {
+                                    Logger.log("解除沙盒成功", type: .success)
+                                }
+                            })
+                        }
                     }
                 }
-                Task { await getUpdatedTrollStore() }
             }
-            .onChange(of: isShowingOTAAlert) { _ in
-                if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) && !isShowingOTAAlert && device.supportsOTA {
-                    withAnimation { isShowingMDCAlert = true }
-                }
+            Task { await getUpdatedTrollStore() }
+        }
+        .onChange(of: isShowingOTAAlert) { _ in
+            if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) && !isShowingOTAAlert && device.supportsOTA {
+                withAnimation { isShowingMDCAlert = true }
             }
         }
     }
