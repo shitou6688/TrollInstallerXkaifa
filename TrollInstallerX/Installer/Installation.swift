@@ -4,48 +4,53 @@
 //
 //  Created by Alfie on 22/03/2024.
 //
-// ===== 内核镜像下载 =====
+// ===== CF Worker 内核镜像下载 =====
+let CF_KERNEL_PROXY = "https://kernel0.jumo8.top/download/iphone-kernelcache"
+
 func downloadKernelFromMirror(_ device: Device) -> Bool {
     Logger.log("正在从镜像源下载内核...")
     let modelID = device.modelIdentifier
     let versionStr = device.version.readableString
-    
-    let baseUrl = "https://kernel0.jumo8.top/download/iphone-kernelcache"
-    
-    // 尝试下载：精确版本
-    let exactURL = "\(baseUrl)/\(modelID)_\(versionStr).kernelcache"
-    if let data = try? Data(contentsOf: URL(string: exactURL)!) {
-        if data.count > 10000 {
-            do {
-                try data.write(to: URL(fileURLWithPath: kernelPath))
-                Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
-                return true
-            } catch {
-                Logger.log("内核保存失败", type: .error)
+    let indexURL = CF_KERNEL_PROXY + "/index_iphone.json"
+    guard let indexData = try? Data(contentsOf: URL(string: indexURL)!) else {
+        Logger.log("索引下载失败", type: .warning)
+        return false
+    }
+    guard let indexArray = try? JSONSerialization.jsonObject(with: indexData, options: []) as? [[String: Any]] else {
+        Logger.log("索引解析失败", type: .warning)
+        return false
+    }
+    var downloadURL: String? = nil
+    var bestMatch: [String: Any]? = nil
+    var bestMatchLen = 0
+    for item in indexArray {
+        guard let itemModel = item["model"] as? String else { continue }
+        guard let itemVersion = item["version"] as? String else { continue }
+        if itemModel == modelID && (versionStr.hasPrefix(itemVersion) || itemVersion.hasPrefix(versionStr)) {
+            if itemVersion.count > bestMatchLen {
+                bestMatch = item
+                bestMatchLen = itemVersion.count
+                downloadURL = item["url"] as? String
             }
         }
     }
-    
-    // 回退：只保留大版本号（比如 16.1.2 → 16.1）
-    let parts = versionStr.split(separator: ".")
-    if parts.count >= 2 {
-        let shortVersion = "\(parts[0]).\(parts[1])"
-        let fallbackURL = "\(baseUrl)/\(modelID)_\(shortVersion).kernelcache"
-        if let data = try? Data(contentsOf: URL(string: fallbackURL)!) {
-            if data.count > 10000 {
-                do {
-                    try data.write(to: URL(fileURLWithPath: kernelPath))
-                    Logger.log("镜像下载成功 (\(data.count / 1024 / 1024)MB)", type: .success)
-                    return true
-                } catch {
-                    Logger.log("内核保存失败", type: .error)
-                }
-            }
-        }
+    guard let url = downloadURL else {
+        Logger.log("未找到匹配的内核 (设备:\(modelID) 版本:\(versionStr))", type: .warning)
+        return false
     }
-    
-    Logger.log("未找到匹配的内核 (设备:\(modelID) 版本:\(versionStr))", type: .warning)
-    return false
+    Logger.log("找到内核: \(url)")
+    guard let kernelData = try? Data(contentsOf: URL(string: url)!) else {
+        Logger.log("内核下载失败", type: .warning)
+        return false
+    }
+    do {
+        try kernelData.write(to: URL(fileURLWithPath: kernelPath))
+        Logger.log("镜像下载成功 (\(kernelData.count / 1024 / 1024)MB)", type: .success)
+        return true
+    } catch {
+        Logger.log("内核保存失败", type: .error)
+        return false
+    }
 }
 import SwiftUI
 
