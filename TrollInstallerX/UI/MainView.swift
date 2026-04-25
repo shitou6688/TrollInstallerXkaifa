@@ -66,211 +66,154 @@ struct MainView: View {
     @ObservedObject var helperView = HelperAlert.shared
 
     var body: some View {
-        ZStack {
-            LinearGradient(colors: [Color(red: 0.15, green: 0.55, blue: 0.95), Color(red: 0.1, green: 0.25, blue: 0.75)], startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
-
-            VStack {
-                Spacer()
-
-                Image("Icon")
-                    .resizable()
-                    .cornerRadius(22)
-                    .frame(width: 120, height: 120)
-                    .shadow(radius: 10)
-
-                Text("巨魔安装器")
-                    .font(.system(size: 30, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .padding(.top, 10)
-
-                Text("iOS 14.0 - 16.6.1")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.top, 1)
-
-                Spacer()
-
-                if !isInstalling {
-                    VStack(spacing: 16) {
-                        Button(action: {
-                            if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                                UIImpactFeedbackGenerator().impactOccurred()
-                                withAnimation { isInstalling.toggle() }
-                            }
-                        }) {
-                            HStack {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.white)
-                                Spacer()
-                                VStack(spacing: 2) {
-                                    Text("开始安装")
-                                        .font(.system(size: 20, weight: .bold, design: .rounded))
+        GeometryReader { geometry in
+            ZStack {
+                LinearGradient(colors: [Color(red: 0.15, green: 0.55, blue: 0.95), Color(red: 0.1, green: 0.25, blue: 0.75)], startPoint: .top, endPoint: .bottom)
+                    .ignoresSafeArea()
+                VStack {
+                    Spacer()
+                    Image("Icon")
+                        .resizable()
+                        .cornerRadius(22)
+                        .frame(width: 120, height: 120)
+                        .shadow(radius: 10)
+                    Text("巨魔安装器")
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .padding(.top, 10)
+                    Text("iOS 14.0 - 16.6.1")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.top, 1)
+                    Spacer()
+                    if !isInstalling {
+                        VStack(spacing: 16) {
+                            Button(action: {
+                                if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
+                                    UIImpactFeedbackGenerator().impactOccurred()
+                                    withAnimation { isInstalling.toggle() }
+                                }
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .font(.system(size: 20))
                                         .foregroundColor(.white)
-                                    Text("一键安装巨魔商店")
-                                        .font(.system(size: 13, design: .rounded))
+                                    Spacer()
+                                    VStack(spacing: 2) {
+                                        Text("开始安装")
+                                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                                            .foregroundColor(.white)
+                                        Text("一键安装巨魔商店")
+                                            .font(.system(size: 13, design: .rounded))
+                                            .foregroundColor(.white.opacity(0.8))
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 18, weight: .semibold))
                                         .foregroundColor(.white.opacity(0.8))
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.8))
+                                .padding(.horizontal, 24)
+                                .padding(.vertical, 16)
+                                .background(
+                                    LinearGradient(colors: [Color(red: 1.0, green: 0.4, blue: 0.2), Color(red: 1.0, green: 0.55, blue: 0.1)], startPoint: .leading, endPoint: .trailing)
+                                )
+                                .cornerRadius(16)
+                                .shadow(color: Color.orange.opacity(0.3), radius: 10, x: 0, y: 5)
                             }
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 16)
-                            .background(
-                                LinearGradient(colors: [Color(red: 1.0, green: 0.4, blue: 0.2), Color(red: 1.0, green: 0.55, blue: 0.1)], startPoint: .leading, endPoint: .trailing)
-                            )
-                            .cornerRadius(16)
-                            .shadow(color: Color.orange.opacity(0.3), radius: 10, x: 0, y: 5)
-                        }
-
-                        HStack(spacing: 12) {
-                            Button(action: {
-                                if let url = URL(string: "https://wa.me/") {
-                                    UIApplication.shared.open(url)
+                            HStack(spacing: 12) {
+                                Button(action: {
+                                    if let url = URL(string: "https://ipa.jumo8.top") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "message.fill")
+                                            .font(.system(size: 14))
+                                        Text("联系客服")
+                                            .font(.system(size: 14, weight: .medium))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(red: 0.2, green: 0.7, blue: 0.3))
+                                    .cornerRadius(12)
                                 }
-                            }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "message.fill")
-                                        .font(.system(size: 14))
-                                    Text("联系客服")
-                                        .font(.system(size: 14, weight: .medium))
+                                Button(action: {
+                                    if let url = URL(string: "https://ipa.jumo8.top") {
+                                        UIApplication.shared.open(url)
+                                    }
+                                }) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "questionmark.circle.fill")
+                                            .font(.system(size: 14))
+                                        Text("帮助教程")
+                                            .font(.system(size: 14, weight: .medium))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color(red: 0.2, green: 0.5, blue: 0.9))
+                                    .cornerRadius(12)
                                 }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(Color(red: 0.2, green: 0.7, blue: 0.3))
-                                .cornerRadius(12)
-                            }
-
-                            Button(action: {
-                                if let url = URL(string: "https://ipa.jumo8.top") {
-                                    UIApplication.shared.open(url)
-                                }
-                            }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "questionmark.circle.fill")
-                                        .font(.system(size: 14))
-                                    Text("帮助教程")
-                                        .font(.system(size: 14, weight: .medium))
-                                }
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 12)
-                                .frame(maxWidth: .infinity)
-                                .background(Color(red: 0.2, green: 0.5, blue: 0.9))
-                                .cornerRadius(12)
                             }
                         }
-                    }
-                    .padding(.horizontal, 24)
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundColor(.white.opacity(0.15))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .padding(.horizontal, 24)
-                            .padding(.bottom, 80)
+                        .padding(.horizontal, 24)
+                    } else {
                         LogView(installationFinished: $installationFinished)
                             .padding(16)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .foregroundColor(.white.opacity(0.15))
+                            )
+                            .padding(.horizontal, 24)
+                            .padding(.bottom, 80)
                     }
-                    .padding(.horizontal, 24)
+                    Spacer().frame(height: 40)
                 }
-
-                Spacer().frame(height: 40)
-            }
-            .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
-
-            if isShowingOTAAlert {
-                PopupView(isShowingAlert: $isShowingOTAAlert, content: {
-                    TrollHelperOTAView(arm64eVersion: .constant(false))
-                })
-            }
-            if isShowingMDCAlert {
-                PopupView(isShowingAlert: $isShowingMDCAlert, shouldAllowDismiss: false, content: {
-                    UnsandboxView(isShowingMDCAlert: $isShowingMDCAlert)
-                })
-            }
-            if isShowingSettings {
-                PopupView(isShowingAlert: $isShowingSettings, content: {
-                    SettingsView(device: device)
-                })
-            }
-            if isShowingCredits {
-                PopupView(isShowingAlert: $isShowingCredits, content: {
-                    CreditsView()
-                })
-            }
-            if helperView.showAlert {
-                PopupView(isShowingAlert: $isShowingHelperAlert, shouldAllowDismiss: false, content: {
-                    PersistenceHelperView(isShowingHelperAlert: $isShowingHelperAlert, allowNoPersistenceHelper: device.supportsDirectInstall)
-                })
-            }
-            if showActivation {
-                ZStack {
-                    Color.black.opacity(0.8).ignoresSafeArea()
-                    ActivationView {
-                        withAnimation { showActivation = false }
-                    }
+                .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
+                if isShowingOTAAlert {
+                    PopupView(isShowingAlert: $isShowingOTAAlert, content: {
+                        TrollHelperOTAView(arm64eVersion: .constant(false))
+                    })
                 }
-            }
-        }
-        .onChange(of: helperView.showAlert) { new in
-            if new { withAnimation { isShowingHelperAlert = true } }
-        }
-        .onChange(of: isShowingHelperAlert) { new in
-            if !new { helperView.showAlert = false }
-        }
-        .onChange(of: isInstalling) { _ in
-            Task {
-                if device.isSupported {
-                    if device.supportsDirectInstall {
-                        installedSuccessfully = await doDirectInstall(device)
-                    } else {
-                        installedSuccessfully = await doIndirectInstall(device)
-                    }
-                    installationFinished = true
+                if isShowingMDCAlert {
+                    PopupView(isShowingAlert: $isShowingMDCAlert, shouldAllowDismiss: false, content: {
+                        UnsandboxView(isShowingMDCAlert: $isShowingMDCAlert)
+                    })
                 }
-                UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
-            }
-        }
-        .onChange(of: isShowingOTAAlert) { new in
-            if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
-        }
-        .onAppear {
-            if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
-            if device.isSupported {
-                withAnimation {
-                    isShowingOTAAlert = device.supportsOTA
-                    if !isShowingOTAAlert {
-                        if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) {
-                            Logger.log("自动解除沙盒...")
-                            grant_full_disk_access({ error in
-                                if error != nil {
-                                    Logger.log("解除沙盒失败: \(error.localizedDescription)", type: .error)
-                                } else {
-                                    Logger.log("解除沙盒成功", type: .success)
-                                }
-                            })
+                if isShowingSettings {
+                    PopupView(isShowingAlert: $isShowingSettings, content: {
+                        SettingsView(device: device)
+                    })
+                }
+                if isShowingCredits {
+                    PopupView(isShowingAlert: $isShowingCredits, content: {
+                        CreditsView()
+                    })
+                }
+                if helperView.showAlert {
+                    PopupView(isShowingAlert: $isShowingHelperAlert, shouldAllowDismiss: false, content: {
+                        PersistenceHelperView(isShowingHelperAlert: $isShowingHelperAlert, allowNoPersistenceHelper: device.supportsDirectInstall)
+                    })
+                }
+                if showActivation {
+                    ZStack {
+                        Color.black.opacity(0.8).ignoresSafeArea()
+                        ActivationView {
+                            withAnimation { showActivation = false }
                         }
                     }
                 }
             }
-            Task { await getUpdatedTrollStore() }
-        }
-        .onChange(of: isShowingOTAAlert) { _ in
-            if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) && !isShowingOTAAlert && device.supportsOTA {
-                withAnimation { isShowingMDCAlert = true }
+            .onChange(of: helperView.showAlert) { new in
+                if new { withAnimation { isShowingHelperAlert = true } }
             }
-        }
-    }
-}
-
-struct MainView_Previews: PreviewProvider {
-    static var previews: some View {
-        MainView()
-    }
-}
+            .onChange(of: isShowingHelperAlert) { new in
+                if !new { helperView.showAlert = false }
+            }
+            .onChange(of: isInstalling) { _ in
+ 
+...(truncated)...
