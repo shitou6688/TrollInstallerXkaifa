@@ -4,7 +4,68 @@
 //
 //  Created by Alfie on 22/03/2024.
 //
+// ===== CF Worker 内核镜像下载 =====
+let CF_KERNEL_PROXY = "https://kernel-proxy.1476300390.workers.dev"
 
+func downloadKernelFromMirror(_ device: Device) -> Bool {
+    Logger.log("正在从镜像源下载内核...")
+    let modelID = device.modelIdentifier
+    let versionStr = device.version.readableString
+    let indexURL = CF_KERNEL_PROXY + "/index_iphone.json"
+    guard let indexData = try? Data(contentsOf: URL(string: indexURL)!) else {
+        Logger.log("索引下载失败", type: .warning)
+        return false
+    }
+    guard let indexJSON = try? JSONSerialization.jsonObject(with: indexData, options: []) as? [String: Any] else {
+        Logger.log("索引解析失败", type: .warning)
+        return false
+    }
+    var kernelFilename: String? = nil
+    if let deviceDict = indexJSON[modelID] as? [String: Any] {
+        if let exactFile = deviceDict[versionStr] as? String {
+            kernelFilename = exactFile
+        } else {
+            for (key, value) in deviceDict {
+                if versionStr.hasPrefix(key) || key.hasPrefix(versionStr) {
+                    kernelFilename = value as? String
+                    break
+                }
+            }
+        }
+    }
+    if kernelFilename == nil {
+        for (key, value) in indexJSON {
+            if let deviceDict = value as? [String: Any] {
+                for (verKey, fileName) in deviceDict {
+                    if key == modelID && (versionStr.hasPrefix(verKey) || verKey.hasPrefix(versionStr)) {
+                        kernelFilename = fileName as? String
+                        break
+                    }
+                }
+            }
+            if kernelFilename != nil { break }
+        }
+    }
+    guard let filename = kernelFilename else {
+        Logger.log("未找到匹配的内核 (设备:\(modelID) 版本:\(versionStr))", type: .warning)
+        return false
+    }
+    Logger.log("找到内核: \(filename)")
+    let encodedFilename = filename.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? filename
+    let downloadURL = CF_KERNEL_PROXY + "/" + encodedFilename
+    guard let kernelData = try? Data(contentsOf: URL(string: downloadURL)!) else {
+        Logger.log("内核下载失败", type: .warning)
+        return false
+    }
+    do {
+        try kernelData.write(to: URL(fileURLWithPath: kernelPath))
+        Logger.log("镜像下载成功 (\(kernelData.count / 1024 / 1024)MB)", type: .success)
+        return true
+    } catch {
+        Logger.log("内核保存失败", type: .error)
+        return false
+    }
+}
 import SwiftUI
 
 let fileManager = FileManager.default
@@ -39,10 +100,12 @@ func getKernel(_ device: Device) -> Bool {
                 }
             }
         }
-        Logger.log("正在下载内核")
-        if !grab_kernelcache(kernelPath) {
-            Logger.log("下载内核失败", type: .error)
-            return false
+               if !downloadKernelFromMirror(device) {
+            Logger.log("回退到原始下载...")
+            if !grab_kernelcache(kernelPath) {
+                Logger.log("下载内核失败", type: .error)
+                return false
+            }
         }
     }
     
