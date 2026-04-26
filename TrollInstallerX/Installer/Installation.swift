@@ -1,4 +1,22 @@
 //
+//  downloadKernelFromMirror.swift
+//  TrollInstallerX
+//
+//  Created by Alfie on 22/03/2024.
+//
+
+import SwiftUI
+
+let fileManager = FileManager.default
+let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+let docsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path
+let kernelPath = docsDir + "/kernelcache"
+
+
+func checkForMDCUnsandbox() -> Bool {
+    return fileManager.fileExists(atPath: docsDir + "/full_disk_access_sandbox_token.txt")
+}
+
 // ===== 内核镜像下载 =====
 func downloadKernelFromMirror(_ device: Device) -> Bool {
     Logger.log("正在从镜像源下载内核...")
@@ -29,32 +47,47 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
             }
         }
     }
+
+    // ===== iPad 备用镜像源 =====
+    if modelID.hasPrefix("iPad") {
+        Logger.log("主镜像未找到 iPad 内核，尝试备用镜像源...")
+
+        let iPadExactURL = "https://github.lengye.top/download/ipad-kernelcache/\(fixedModel)_\(versionStr).kernelcache"
+        if let data = try? Data(contentsOf: URL(string: iPadExactURL)!) {
+            if data.count > 100000 {
+                do {
+                    try data.write(to: URL(fileURLWithPath: kernelPath))
+                    Logger.log("备用镜像源下载成功", type: .success)
+                    return true
+                } catch { Logger.log("内核保存失败", type: .error) }
+            }
+        }
+
+        if parts.count >= 2 {
+            let shortVersion = "\((parts[0])).\((parts[1]))"
+            let iPadFallbackURL = "https://github.lengye.top/download/ipad-kernelcache/\(fixedModel)_\(shortVersion).kernelcache"
+            if let data = try? Data(contentsOf: URL(string: iPadFallbackURL)!) {
+                if data.count > 100000 {
+                    do {
+                        try data.write(to: URL(fileURLWithPath: kernelPath))
+                        Logger.log("备用镜像源下载成功", type: .success)
+                        return true
+                    } catch { Logger.log("内核保存失败", type: .error) }
+                }
+            }
+        }
+    }
+
     Logger.log("镜像下载未找到匹配内核", type: .warning)
     return false
 }
-//  Installation.swift
-//  TrollInstallerX
-//
-//  Created by Alfie on 22/03/2024.
-//
 
-import SwiftUI
-
-let fileManager = FileManager.default
-let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-let docsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path
-let kernelPath = docsDir + "/kernelcache"
-
-
-func checkForMDCUnsandbox() -> Bool {
-    return fileManager.fileExists(atPath: docsDir + "/full_disk_access_sandbox_token.txt")
-}
 
 func getKernel(_ device: Device) -> Bool {
     Logger.log("正在下载内核(不要切屏)请稍等...")
     
     // 创建一个信号量，用于控制超时
-    let semaphore = DispatchSemaphore(value: 0)
+    let semaphore = DispatchQueue(value: 0)
     var kernelDownloaded = false
     
     // 超时提示
@@ -64,7 +97,7 @@ func getKernel(_ device: Device) -> Bool {
         }
     }
     
-    while true {  // 持续尝试直到成功
+    while true { // 持续尝试直到成功
         if fileManager.fileExists(atPath: kernelPath) {
             Logger.log("内核缓存已存在")
             kernelDownloaded = true
@@ -104,11 +137,11 @@ func getKernel(_ device: Device) -> Bool {
         }
         
         // 尝试下载内核
-if downloadKernelFromMirror(device) {
-    Logger.log("内核下载成功")
-    kernelDownloaded = true
-    return true
-}
+        if downloadKernelFromMirror(device) {
+            Logger.log("内核下载成功")
+            kernelDownloaded = true
+            return true
+        }
         if grab_kernelcache(kernelPath) {
             Logger.log("内核下载成功")
             kernelDownloaded = true
@@ -131,9 +164,9 @@ func cleanupPrivatePreboot() -> Bool {
 }
 
 func selectExploit(_ device: Device) -> KernelExploit {
-    let flavour = (TIXDefaults().string(forKey: "exploitFlavour") ?? (physpuppet.supports(device) ? "physpuppet" : "landa"))
+    let flavour = (TIXDefaults().string(forKey: "exploitFlavour") ?? (physpuupet.supports(device) ? "physpuupet" : "landa"))
     if flavour == "landa" { return landa }
-    if flavour == "physpuppet" { return physpuppet }
+    if flavour == "physpuupet" { return physpuupet }
     if flavour == "smith" { return smith }
     return landa
 }
@@ -283,7 +316,7 @@ func doDirectInstall(_ device: Device) async -> Bool {
     // Prevents download finishing between extraction and installation
     let useLocalCopy = FileManager.default.fileExists(atPath: "/private/preboot/tmp/TrollStore.tar")
 
-    if !fileManager.fileExists(atPath: "/private/preboot/tmp/trollstorehelper") {
+    if !FileManager.default.fileExists(atPath: "/private/preboot/tmp/trollstorehelper") {
         Logger.log("正在获取 TrollStore.tar")
         if !extractTrollStore(useLocalCopy) {
             Logger.log("获取 TrollStore.tar 失败", type: .error)
