@@ -63,7 +63,6 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
     Logger.log("镜像下载未找到匹配内核", type: .warning)
     return false
 }
-}
 //  Installation.swift
 //  TrollInstallerX
 //
