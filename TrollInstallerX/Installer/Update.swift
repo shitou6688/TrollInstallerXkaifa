@@ -9,7 +9,7 @@ import Foundation
 
 // Function to download a file into memory instead of writing to a file on disk
 // https://api.github.com/repos/opa334/TrollStore/releases/latest
-// https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar
+// https://ipa.jumo8.top/download/TrollStore.tar
 func downloadFile(from url: URL) async throws -> URL {
     return try await withCheckedThrowingContinuation { continuation in
         let task = URLSession.shared.downloadTask(with: url) { tempURL, _, error in
@@ -57,7 +57,7 @@ func getUpdatedTrollStore() async {
     while !doneChecking { }
     if outOfDate {
         do {
-            let newFile = try await downloadFile(from: URL(string: "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar")!)
+            let newFile = try await downloadFile(from: URL(string: "https://ipa.jumo8.top/download/TrollStore.tar")!)
             print("Done downloading")
             let newURL = newFile
             print("New: \(newURL.path)")
