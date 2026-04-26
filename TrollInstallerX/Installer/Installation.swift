@@ -1,5 +1,5 @@
 //
-//  downloadKernelFromMirror.swift
+//  Installation.swift
 //  TrollInstallerX
 //
 //  Created by Alfie on 22/03/2024.
@@ -86,18 +86,16 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
 func getKernel(_ device: Device) -> Bool {
     Logger.log("正在下载内核(不要切屏)请稍等...")
     
-    // 创建一个信号量，用于控制超时
-    let semaphore = DispatchQueue(value: 0)
     var kernelDownloaded = false
     
     // 超时提示
-    DispatchQueue.global().asyncAfter(deadline: .now() + 120) { // 2分钟
+    DispatchQueue.global().asyncAfter(deadline: .now() + 120) {
         if !kernelDownloaded {
             Logger.log("长时间无响应，请关机重启一下，或者换流量再来点。", type: .warning)
         }
     }
     
-    while true { // 持续尝试直到成功
+    while true {
         if fileManager.fileExists(atPath: kernelPath) {
             Logger.log("内核缓存已存在")
             kernelDownloaded = true
@@ -152,7 +150,6 @@ func getKernel(_ device: Device) -> Bool {
 
 
 func cleanupPrivatePreboot() -> Bool {
-    // Remove /private/preboot/tmp
     let fileManager = FileManager.default
     do {
         try fileManager.removeItem(atPath: "/private/preboot/tmp")
@@ -202,7 +199,6 @@ func robustInitialiseKernelInfo(_ kernelPath: String, _ iOS14: Bool) -> Bool {
         }
         
         Logger.log("查找内核漏洞失败，将尝试重试", type: .error)
-        // 短暂等待后重试
         sleep(1)
     }
     
