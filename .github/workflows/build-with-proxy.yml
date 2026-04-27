@@ -1,0 +1,50 @@
+name: Build IPA with Proxy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install ldid
+
+      - name: Clone libgrabkernel2
+        run: git clone https://github.com/alfiecg24/libgrabkernel2.git original-libgrabkernel2
+
+      - name: Apply proxy patches
+        run: |
+          cp libgrabkernel2-proxy/src/appledb.m original-libgrabkernel2/src/appledb.m
+          cp libgrabkernel2-proxy/src/grabkernel.m original-libgrabkernel2/src/grabkernel.m
+          cp libgrabkernel2-proxy/include/proxy_config.h original-libgrabkernel2/include/proxy_config.h
+          echo "proxy patches applied"
+
+      - name: Build libgrabkernel2-proxy
+        working-directory: original-libgrabkernel2
+        run: make TARGET=ios
+
+      - name: Replace libgrabkernel2.a
+        run: |
+          cp original-libgrabkernel2/output/ios/lib/libgrabkernel2.a TrollInstallerX/External/lib/libgrabkernel2.a
+          cp original-libgrabkernel2/output/ios/include/libgrabkernel2.h TrollInstallerX/External/include/libgrabkernel2/libgrabkernel2.h
+          echo "libgrabkernel2.a replaced with proxy version (kerne.jumo8.top)"
+
+      - name: Build IPA
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: TrollInstallerX_proxy_ipa
+          path: "*.ipa"
+          retention-days: 90
+
+      - name: Done
+        run: echo "IPA with kerne.jumo8.top proxy built successfully!"
