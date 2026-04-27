@@ -109,9 +109,10 @@ struct LogView: View {
                     UIPasteboard.general.string = verbose ? stdoutString : Logger.shared.logString
                 } label: {
                     Label("复制到剪贴板", systemImage: "doc.on.doc")
-                    }
                 }
             }
+            }
+        }
     }
 }
 
