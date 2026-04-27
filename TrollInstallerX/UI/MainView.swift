@@ -210,26 +210,13 @@ struct MainView: View {
                 if device.isSupported {
                     withAnimation {
                         isShowingOTAAlert = device.supportsOTA
+                        if !isShowingOTAAlert { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) }
                     }
                 }
                 Task { await getUpdatedTrollStore() }
             }
-            .onChange(of: showActivation) { activated in
-                if !activated && device.isSupported && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
-                    // 卡密验证通过后自动解除沙盒
-                    Logger.log("正在自动解除沙盒...")
-                    grant_full_disk_access({ error in
-                        if let error = error {
-                            Logger.log("自动解除沙盒失败，请手动点击", type: .error)
-                            withAnimation { isShowingMDCAlert = true }
-                        } else {
-                            Logger.log("自动解除沙盒成功 ✅", type: .success)
-                        }
-                    })
-                }
-            }
             .onChange(of: isShowingOTAAlert) { new in
-                // OTA 相关（当前 supportsOTA=false，不会触发）
+                if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
             }
         }
     }
