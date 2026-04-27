@@ -15,7 +15,7 @@ struct ActivationView: View {
     let onVerified: () -> Void
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.1, green: 0.1, blue: 0.18), Color(red: 0.08, green: 0.13, blue: 0.24)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(red: 0.18, green: 0.17, blue: 0.30), Color(red: 0.07, green: 0.07, blue: 0.11)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
             VStack(spacing: 20) {
                 Spacer()
@@ -33,7 +33,7 @@ struct ActivationView: View {
                         else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
                     }
                     .frame(maxWidth: .infinity).padding()
-                    .background(LinearGradient(colors: [Color(red: 0.36, green: 0.23, blue: 0.62), Color(red: 0.48, green: 0.32, blue: 0.77)], startPoint: .leading, endPoint: .trailing))
+                    .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
                     .cornerRadius(12).disabled(isLoading || kamiText.isEmpty)
                     .scaleEffect(isPressed ? 0.96 : 1.0)
                     .animation(.easeInOut(duration: 0.15), value: isPressed)
@@ -82,7 +82,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.18, green: 0.17, blue: 0.30), Color(red: 0.07, green: 0.07, blue: 0.11)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
@@ -90,8 +90,8 @@ struct MainView: View {
                                 .resizable()
                                 .cornerRadius(22)
                                 .frame(maxWidth: 120, maxHeight: 120)
-                                .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.5), radius: 20, x: 0, y: 5)
-                                .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.3), radius: 40, x: 0, y: 10)
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.4), radius: 20, x: 0, y: 5)
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.2), radius: 40, x: 0, y: 10)
                             Text("巨魔安装器")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
@@ -135,10 +135,10 @@ struct MainView: View {
                                         .frame(maxWidth: geometry.size.width / 1.2)
                                         .frame(maxHeight: 60)
                                         .background(
-                                            LinearGradient(colors: [Color(red: 0.36, green: 0.23, blue: 0.62), Color(red: 0.48, green: 0.32, blue: 0.77)], startPoint: .leading, endPoint: .trailing)
+                                            LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
                                         )
                                         .cornerRadius(14)
-                                        .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.4), radius: 16, x: 0, y: 8)
+                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.35), radius: 16, x: 0, y: 8)
                                 })
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: 60)
