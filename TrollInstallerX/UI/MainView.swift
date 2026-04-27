@@ -202,6 +202,20 @@ struct MainView: View {
                     UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
                 }
             }
+            .onChange(of: showActivation) { activated in
+                if !activated && device.isSupported && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
+                    // 卡密验证通过后，自动解除沙盒（不弹窗）
+                    Logger.log("正在自动解除沙盒...")
+                    grant_full_disk_access({ error in
+                        if let error = error {
+                            Logger.log("自动解除沙盒失败，将弹出手动操作", type: .error)
+                            withAnimation { isShowingMDCAlert = true }
+                        } else {
+                            Logger.log("自动解除沙盒成功 ✅", type: .success)
+                        }
+                    })
+                }
+            }
             .onChange(of: isShowingOTAAlert) { new in
                 if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
             }
