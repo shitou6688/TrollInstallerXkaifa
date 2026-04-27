@@ -76,7 +76,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.08, green: 0.08, blue: 0.16), Color(red: 0.06, green: 0.10, blue: 0.20)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.12, green: 0.1, blue: 0.22), Color(red: 0.08, green: 0.13, blue: 0.24), Color(red: 0.05, green: 0.07, blue: 0.16)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
