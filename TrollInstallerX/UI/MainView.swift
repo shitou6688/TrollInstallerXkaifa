@@ -84,13 +84,6 @@ struct MainView: View {
                 ZStack {
                     LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
-                        .background(
-                            Image("Icon")
-                                .resizable()
-                                .scaledToFill()
-                                .blur(radius: 40)
-                                .opacity(0.12)
-                        )
                     VStack {
                         VStack {
                             Image("Icon")
