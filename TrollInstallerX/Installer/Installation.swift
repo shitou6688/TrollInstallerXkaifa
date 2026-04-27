@@ -39,7 +39,7 @@ func getKernel(_ device: Device) -> Bool {
     let estimatedTotalMB: Double = 25.0
     var progressTimer: DispatchSourceTimer?
     progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-    progressTimer?.schedule(deadline: .now() + 3, repeating: .seconds(1.5))
+    progressTimer?.schedule(deadline: .now() + 3, repeating: .seconds(2))
     progressTimer?.setEventHandler {
         if !kernelDownloaded {
             if fileManager.fileExists(atPath: kernelPath) {
