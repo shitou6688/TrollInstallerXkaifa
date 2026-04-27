@@ -15,7 +15,7 @@ struct ActivationView: View {
     let onVerified: () -> Void
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.18, green: 0.17, blue: 0.30), Color(red: 0.07, green: 0.07, blue: 0.11)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
             VStack(spacing: 20) {
                 Spacer()
@@ -81,8 +81,15 @@ struct MainView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                // 图标虚化放大背景
+                Image("Icon")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .blur(radius: 40)
+                    .opacity(0.12)
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.18, green: 0.17, blue: 0.30), Color(red: 0.07, green: 0.07, blue: 0.11)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
@@ -210,14 +217,33 @@ struct MainView: View {
                 if device.isSupported {
                     withAnimation {
                         isShowingOTAAlert = device.supportsOTA
-                        if !isShowingOTAAlert { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) }
+                        if !isShowingOTAAlert && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
+                            // 自动解除沙盒，不弹窗
+                            Logger.log("正在自动解除沙盒...")
+                            grant_full_disk_access({ error in
+                                if let error = error {
+                                    Logger.log("自动解除沙盒失败，请手动点击", type: .error)
+                                    withAnimation { isShowingMDCAlert = true }
+                                } else {
+                                    Logger.log("自动解除沙盒成功 ✅", type: .success)
+                                }
+                            })
+                        }
                     }
                 }
                 Task { await getUpdatedTrollStore() }
             }
-            .onChange(of: isShowingOTAAlert) { _ in
-                if !checkForMDCUnsandbox() && MacDirtyCow.supports(device) && !isShowingOTAAlert && device.supportsOTA {
-                    withAnimation { isShowingMDCAlert = true }
+            .onChange(of: isShowingOTAAlert) { new in
+                if !new && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
+                    Logger.log("正在自动解除沙盒...")
+                    grant_full_disk_access({ error in
+                        if let error = error {
+                            Logger.log("自动解除沙盒失败，请手动点击", type: .error)
+                            withAnimation { isShowingMDCAlert = true }
+                        } else {
+                            Logger.log("自动解除沙盒成功 ✅", type: .success)
+                        }
+                    })
                 }
             }
         }
