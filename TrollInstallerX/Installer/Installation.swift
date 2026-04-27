@@ -23,11 +23,27 @@ func getKernel(_ device: Device) -> Bool {
     let semaphore = DispatchSemaphore(value: 0)
     var kernelDownloaded = false
     
-    DispatchQueue.global().asyncAfter(deadline: .now() + 120) {
+    // 5分钟超时（300秒）
+    DispatchQueue.global().asyncAfter(deadline: .now() + 300) {
         if !kernelDownloaded {
             Logger.log("长时间无响应，请关机重启一下，或者换流量再来点。", type: .warning)
         }
     }
+    
+    // 每30秒输出一次下载进度提示，让用户知道程序没有卡死
+    var progressCounter = 0
+    let progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+    progressTimer.schedule(deadline: .now() + 15, repeating: .seconds(30))
+    progressTimer.setEventHandler {
+        if !kernelDownloaded {
+            progressCounter += 1
+            let dots = String(repeating: ".", count: min(progressCounter, 5))
+            Logger.log("内核正在下载中，请耐心等待\(dots)（已等待\(progressCounter * 30)秒）")
+        } else {
+            progressTimer.cancel()
+        }
+    }
+    progressTimer.resume()
     
     while true {
         if fileManager.fileExists(atPath: kernelPath) {
@@ -67,9 +83,11 @@ func getKernel(_ device: Device) -> Bool {
         }
         
         Logger.log("正在下载内核")
+        Logger.log("⏳ 正在连接固件服务器查询内核信息...")
         if grab_kernelcache(kernelPath) {
             Logger.log("内核下载成功")
             kernelDownloaded = true
+            progressTimer.cancel()
             return true
         }
     }
@@ -359,3 +377,4 @@ func doIndirectInstall(_ device: Device) async -> Bool {
     Logger.log("未找到可用的应用来安装持久性助手", type: .error)
     return false
 }
+
