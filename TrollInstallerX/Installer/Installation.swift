@@ -1,68 +1,4 @@
 //
-// ===== 内核镜像下载 =====
-func downloadKernelFromMirror(_ device: Device) -> Bool {
-    Logger.log("正在从镜像源下载内核...")
-    let modelID = device.modelIdentifier
-    let versionStr = device.version.readableString
-    let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
-    let exactURL = "https://kernel0.jumo8.top/\(fixedModel)_\(versionStr).kernelcache"
-    if let data = try? Data(contentsOf: URL(string: exactURL)!) {
-        if data.count > 100000 {
-            do {
-                try data.write(to: URL(fileURLWithPath: kernelPath))
-                Logger.log("镜像下载成功", type: .success)
-                return true
-            } catch { Logger.log("内核保存失败", type: .error) }
-        }
-    }
-    let parts = versionStr.split(separator: ".")
-    if parts.count >= 2 {
-        let shortVersion = "\((parts[0])).\((parts[1]))"
-        let fallbackURL = "https://kernel0.jumo8.top/\(fixedModel)_\(shortVersion).kernelcache"
-        if let data = try? Data(contentsOf: URL(string: fallbackURL)!) {
-            if data.count > 100000 {
-                do {
-                    try data.write(to: URL(fileURLWithPath: kernelPath))
-                    Logger.log("镜像下载成功", type: .success)
-                    return true
-                } catch { Logger.log("内核保存失败", type: .error) }
-            }
-        }
-    }
-
-    // ===== iPad 备用镜像源 =====
-    if modelID.hasPrefix("iPad") {
-        Logger.log("主镜像未找到 iPad 内核，尝试备用镜像源...")
-
-        let iPadExactURL = "https://kernel0.jumo8.top/ipad/\(fixedModel)_\(versionStr).kernelcache"
-        if let data = try? Data(contentsOf: URL(string: iPadExactURL)!) {
-            if data.count > 100000 {
-                do {
-                    try data.write(to: URL(fileURLWithPath: kernelPath))
-                    Logger.log("备用镜像源下载成功", type: .success)
-                    return true
-                } catch { Logger.log("内核保存失败", type: .error) }
-            }
-        }
-
-        if parts.count >= 2 {
-            let shortVersion = "\((parts[0])).\((parts[1]))"
-            let iPadFallbackURL = "https://kernel0.jumo8.top/ipad/\(fixedModel)_\(shortVersion).kernelcache"
-            if let data = try? Data(contentsOf: URL(string: iPadFallbackURL)!) {
-                if data.count > 100000 {
-                    do {
-                        try data.write(to: URL(fileURLWithPath: kernelPath))
-                        Logger.log("备用镜像源下载成功", type: .success)
-                        return true
-                    } catch { Logger.log("内核保存失败", type: .error) }
-                }
-            }
-        }
-    }
-
-    Logger.log("镜像下载未找到匹配内核", type: .warning)
-    return false
-}
 //  Installation.swift
 //  TrollInstallerX
 //
@@ -82,41 +18,37 @@ func checkForMDCUnsandbox() -> Bool {
 }
 
 func getKernel(_ device: Device) -> Bool {
-    Logger.log("正在下载内核(不要切屏)请稍等...")
+    Logger.log("正在下载内核(不要切屏)请稍后...")
     
-    // 创建一个信号量，用于控制超时
     let semaphore = DispatchSemaphore(value: 0)
     var kernelDownloaded = false
     
-    // 超时提示
-    DispatchQueue.global().asyncAfter(deadline: .now() + 120) { // 2分钟
+    DispatchQueue.global().asyncAfter(deadline: .now() + 120) {
         if !kernelDownloaded {
             Logger.log("长时间无响应，请关机重启一下，或者换流量再来点。", type: .warning)
         }
     }
     
-    while true {  // 持续尝试直到成功
+    while true {
         if fileManager.fileExists(atPath: kernelPath) {
             Logger.log("内核缓存已存在")
             kernelDownloaded = true
             return true
         }
         
-        // 检查是否有捆绑的内核缓存
         if fileManager.fileExists(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "") ?? "") {
             do {
                 try fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
-                if fileManager.fileExists(atPath: kernelPath) { 
+                if fileManager.fileExists(atPath: kernelPath) {
                     Logger.log("已使用捆绑的内核缓存文件")
                     kernelDownloaded = true
-                    return true 
+                    return true
                 }
             } catch {
                 Logger.log("复制捆绑内核缓存失败: \(error.localizedDescription)", type: .error)
             }
         }
         
-        // 使用MacDirtyCow尝试获取内核缓存
         if MacDirtyCow.supports(device) && checkForMDCUnsandbox() {
             let fd = open(docsDir + "/full_disk_access_sandbox_token.txt", O_RDONLY)
             if fd > 0 {
@@ -134,12 +66,7 @@ func getKernel(_ device: Device) -> Bool {
             }
         }
         
-        // 尝试下载内核
-if downloadKernelFromMirror(device) {
-    Logger.log("内核下载成功")
-    kernelDownloaded = true
-    return true
-}
+        Logger.log("正在下载内核")
         if grab_kernelcache(kernelPath) {
             Logger.log("内核下载成功")
             kernelDownloaded = true
@@ -150,7 +77,6 @@ if downloadKernelFromMirror(device) {
 
 
 func cleanupPrivatePreboot() -> Bool {
-    // Remove /private/preboot/tmp
     let fileManager = FileManager.default
     do {
         try fileManager.removeItem(atPath: "/private/preboot/tmp")
@@ -190,7 +116,6 @@ func tryInstallPersistenceHelper(_ candidates: [InstalledApp]) -> Bool {
     return false
 }
 
-// 添加内核查找函数的更健壮版本
 func robustInitialiseKernelInfo(_ kernelPath: String, _ iOS14: Bool) -> Bool {
     for attempt in 1...3 {
         Logger.log("正在查找内核漏洞 (尝试 \(attempt)/3)")
@@ -198,12 +123,9 @@ func robustInitialiseKernelInfo(_ kernelPath: String, _ iOS14: Bool) -> Bool {
             Logger.log("查找内核漏洞成功")
             return true
         }
-        
         Logger.log("查找内核漏洞失败，将尝试重试", type: .error)
-        // 短暂等待后重试
         sleep(1)
     }
-    
     Logger.log("查找内核漏洞失败，已尝试3次", type: .error)
     return false
 }
@@ -311,7 +233,6 @@ func doDirectInstall(_ device: Device) async -> Bool {
         }
     }
     
-    // Prevents download finishing between extraction and installation
     let useLocalCopy = FileManager.default.fileExists(atPath: "/private/preboot/tmp/TrollStore.tar")
 
     if !fileManager.fileExists(atPath: "/private/preboot/tmp/trollstorehelper") {
@@ -325,7 +246,6 @@ func doDirectInstall(_ device: Device) async -> Bool {
     let newCandidates = getCandidates()
     persistenceHelperCandidates = newCandidates
     
-    // 自动尝试安装持久性助手
     if !tryInstallPersistenceHelper(newCandidates) {
         Logger.log("无法安装持久性助手", type: .error)
     }
@@ -336,7 +256,7 @@ func doDirectInstall(_ device: Device) async -> Bool {
     } else {
         Logger.log("成功安装 TrollStore！", type: .success)
         Logger.log("巨魔已安装成功，返回桌面查找大头巨魔！", type: .success)
-        Logger.log("如无显示，请在桌面右滑到资源库，搜 troll（没有的话重启一下）", type: .warning)
+        Logger.log("如无显示，请在桌面右滑到资源库，找troll（没有的话重启一下）", type: .warning)
     }
     
     if !cleanupPrivatePreboot() {
@@ -407,7 +327,6 @@ func doIndirectInstall(_ device: Device) async -> Bool {
     
     persistenceHelperCandidates = candidates
     
-    // 自动选择第一个可用的应用作为持久性助手
     if let firstCandidate = candidates.first {
         Logger.log("正在自动注入持久性助手到 \(firstCandidate.displayName)")
         let pathToInstall = firstCandidate.bundlePath!
@@ -421,7 +340,7 @@ func doIndirectInstall(_ device: Device) async -> Bool {
                 restartBackboard()
             }
         } else {
-            Logger.log("成功安装持久性助手", type: .success)
+            Logger.log("成功安装持久性助手！", type: .success)
             Logger.log("返回桌面打开\"\(firstCandidate.displayName)\"这个软件。（找不到这个软件，桌面上搜一下。）", type: .warning)
             success = true
         }
