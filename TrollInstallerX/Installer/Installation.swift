@@ -32,6 +32,7 @@ func getKernel(_ device: Device) -> Bool {
     
     // 每2秒监控下载文件大小，显示实时进度
     var lastReportedSize: UInt64 = 0
+    let estimatedTotalMB: Double = 25.0  // kernelcache 通常 15~30 MB
     var progressTimer: DispatchSourceTimer?
     progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
     progressTimer?.schedule(deadline: .now() + 2, repeating: .seconds(2))
@@ -42,8 +43,9 @@ func getKernel(_ device: Device) -> Bool {
                    let size = attrs[.size] as? UInt64, size > 0 {
                     let sizeMB = Double(size) / 1048576.0
                     let sizeStr = String(format: "%.1f", sizeMB)
+                    let percent = min(Int(sizeMB / estimatedTotalMB * 100), 99)
                     if size != lastReportedSize {
-                        Logger.log("📥 下载进度: \(sizeStr) MB")
+                        Logger.log("📥 下载进度: \(percent)% (\(sizeStr) MB)")
                     }
                 }
             } else {
