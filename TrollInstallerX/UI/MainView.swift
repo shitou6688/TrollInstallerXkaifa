@@ -81,16 +81,16 @@ struct MainView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 图标虚化放大背景
-                Image("Icon")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .blur(radius: 40)
-                    .opacity(0.12)
                 ZStack {
                     LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
+                        .background(
+                            Image("Icon")
+                                .resizable()
+                                .scaledToFill()
+                                .blur(radius: 40)
+                                .opacity(0.12)
+                        )
                     VStack {
                         VStack {
                             Image("Icon")
@@ -217,24 +217,13 @@ struct MainView: View {
                 if device.isSupported {
                     withAnimation {
                         isShowingOTAAlert = device.supportsOTA
-                        if !isShowingOTAAlert && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
-                            // 自动解除沙盒，不弹窗
-                            Logger.log("正在自动解除沙盒...")
-                            grant_full_disk_access({ error in
-                                if let error = error {
-                                    Logger.log("自动解除沙盒失败，请手动点击", type: .error)
-                                    withAnimation { isShowingMDCAlert = true }
-                                } else {
-                                    Logger.log("自动解除沙盒成功 ✅", type: .success)
-                                }
-                            })
-                        }
                     }
                 }
                 Task { await getUpdatedTrollStore() }
             }
-            .onChange(of: isShowingOTAAlert) { new in
-                if !new && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
+            .onChange(of: showActivation) { activated in
+                if !activated && device.isSupported && MacDirtyCow.supports(device) && !checkForMDCUnsandbox() {
+                    // 卡密验证通过后自动解除沙盒
                     Logger.log("正在自动解除沙盒...")
                     grant_full_disk_access({ error in
                         if let error = error {
@@ -245,6 +234,9 @@ struct MainView: View {
                         }
                     })
                 }
+            }
+            .onChange(of: isShowingOTAAlert) { new in
+                // OTA 相关（当前 supportsOTA=false，不会触发）
             }
         }
     }
