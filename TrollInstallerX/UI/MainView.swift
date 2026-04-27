@@ -76,7 +76,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(hex: 0x0482d1), Color(hex: 0x0566ed)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    LinearGradient(colors: [Color(red: 0.08, green: 0.08, blue: 0.16), Color(red: 0.06, green: 0.10, blue: 0.20)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
@@ -88,12 +88,6 @@ struct MainView: View {
                             Text("TrollInstallerX")
                                 .font(.system(size: 30, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
-                            Text("开发者：Alfie CG")
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
-                            Text("iOS 14.0 - 16.6.1")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundColor(.white.opacity(0.5))
                         }
                         .padding(.vertical)
                         if !isInstalling {
@@ -106,7 +100,7 @@ struct MainView: View {
                         }
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
-                                .foregroundColor(.white.opacity(0.15))
+                                .foregroundColor(.white.opacity(0.08))
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
                                 .transition(.scale)
