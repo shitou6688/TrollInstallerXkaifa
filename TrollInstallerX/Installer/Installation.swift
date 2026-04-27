@@ -20,36 +20,48 @@ func checkForMDCUnsandbox() -> Bool {
 func getKernel(_ device: Device) -> Bool {
     Logger.log("正在下载内核(不要切屏)请稍后...")
     
-    let semaphore = DispatchSemaphore(value: 0)
-    var kernelDownloaded = false
-    
-    // 5分钟超时（300秒）
-    DispatchQueue.global().asyncAfter(deadline: .now() + 300) {
-        if !kernelDownloaded {
-            Logger.log("长时间无响应，请关机重启一下，或者换流量再来点。", type: .warning)
+    // 保持屏幕常亮，防止息屏断网
+    DispatchQueue.main.async {
+        UIApplication.shared.isIdleTimerDisabled = true
+    }
+    defer {
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = false
         }
     }
     
-    // 每2秒监控下载文件大小，只在文件在增长时才显示进度
+    let semaphore = DispatchSemaphore(value: 0)
+    var kernelDownloaded = false
+    
+    // 每1.5秒监控下载进度 + 检测卡死
     var lastReportedSize: UInt64 = 0
-    let estimatedTotalMB: Double = 25.0  // kernelcache 通常 15~30 MB
+    var lastSizeChangeTime = Date()
+    let estimatedTotalMB: Double = 25.0
     var progressTimer: DispatchSourceTimer?
     progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-    progressTimer?.schedule(deadline: .now() + 3, repeating: .seconds(2))
-    progressTimer?.setEventHandler { [lastReportedSize] in
+    progressTimer?.schedule(deadline: .now() + 3, repeating: .seconds(1.5))
+    progressTimer?.setEventHandler {
         if !kernelDownloaded {
             if fileManager.fileExists(atPath: kernelPath) {
                 if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
                    let size = attrs[.size] as? UInt64, size > 0 {
-                    let sizeMB = Double(size) / 1048576.0
-                    let sizeStr = String(format: "%.1f", sizeMB)
-                    let percent = min(Int(sizeMB / estimatedTotalMB * 100), 99)
                     if size != lastReportedSize {
+                        // 文件在增长，更新进度
+                        lastReportedSize = size
+                        lastSizeChangeTime = Date()
+                        let sizeMB = Double(size) / 1048576.0
+                        let sizeStr = String(format: "%.1f", sizeMB)
+                        let percent = min(Int(sizeMB / estimatedTotalMB * 100), 99)
                         Logger.log("📥 下载进度: \(percent)% (\(sizeStr) MB)")
+                    } else if Date().timeIntervalSince(lastSizeChangeTime) > 3.0 {
+                        // 文件超过3秒没变化，卡住了 → 删掉重新下载
+                        Logger.log("⚠️ 下载卡住，自动重试中...", type: .warning)
+                        try? fileManager.removeItem(atPath: kernelPath)
+                        lastReportedSize = 0
+                        lastSizeChangeTime = Date()
                     }
                 }
             }
-            // 文件还没开始下载时保持安静，不刷屏
         } else {
             progressTimer?.cancel()
         }
@@ -95,17 +107,20 @@ func getKernel(_ device: Device) -> Bool {
         
         Logger.log("正在下载内核")
         if grab_kernelcache(kernelPath) {
-            progressTimer?.cancel()
-            // 显示最终下载大小
-            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
-               let size = attrs[.size] as? UInt64 {
-                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-                Logger.log("内核下载成功 ✅ (\(sizeMB) MB)")
-            } else {
-                Logger.log("内核下载成功 ✅")
+            // 确认文件真的存在（可能被卡死检测删掉了）
+            if fileManager.fileExists(atPath: kernelPath) {
+                progressTimer?.cancel()
+                if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+                   let size = attrs[.size] as? UInt64 {
+                    let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                    Logger.log("内核下载成功 ✅ (\(sizeMB) MB)")
+                } else {
+                    Logger.log("内核下载成功 ✅")
+                }
+                kernelDownloaded = true
+                return true
             }
-            kernelDownloaded = true
-            return true
+            // 文件不存在，继续循环重试
         }
     }
 }
