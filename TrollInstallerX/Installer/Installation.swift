@@ -30,12 +30,12 @@ func getKernel(_ device: Device) -> Bool {
         }
     }
     
-    // 每2秒监控下载文件大小，显示实时进度
+    // 每2秒监控下载文件大小，只在文件在增长时才显示进度
     var lastReportedSize: UInt64 = 0
     let estimatedTotalMB: Double = 25.0  // kernelcache 通常 15~30 MB
     var progressTimer: DispatchSourceTimer?
     progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-    progressTimer?.schedule(deadline: .now() + 2, repeating: .seconds(2))
+    progressTimer?.schedule(deadline: .now() + 3, repeating: .seconds(2))
     progressTimer?.setEventHandler { [lastReportedSize] in
         if !kernelDownloaded {
             if fileManager.fileExists(atPath: kernelPath) {
@@ -48,9 +48,8 @@ func getKernel(_ device: Device) -> Bool {
                         Logger.log("📥 下载进度: \(percent)% (\(sizeStr) MB)")
                     }
                 }
-            } else {
-                Logger.log("⏳ 正在连接固件服务器...")
             }
+            // 文件还没开始下载时保持安静，不刷屏
         } else {
             progressTimer?.cancel()
         }
@@ -95,7 +94,6 @@ func getKernel(_ device: Device) -> Bool {
         }
         
         Logger.log("正在下载内核")
-        Logger.log("⏳ 正在连接固件服务器查询内核信息...")
         if grab_kernelcache(kernelPath) {
             progressTimer?.cancel()
             // 显示最终下载大小
