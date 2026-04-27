@@ -11,6 +11,7 @@ struct ActivationView: View {
     @State private var kamiText = ""
     @State private var isLoading = false
     @State private var errorMessage = ""
+    @State private var isPressed = false
     let onVerified: () -> Void
     var body: some View {
         ZStack {
@@ -24,13 +25,18 @@ struct ActivationView: View {
                     TextField("请输入卡密", text: $kamiText)
                         .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
                     if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
-                    Button(action: verifyCard) {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        verifyCard()
+                    }) {
                         if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
                         else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
                     }
                     .frame(maxWidth: .infinity).padding()
-                    .background(LinearGradient(colors: [Color(red: 0.4, green: 0.49, blue: 0.92), Color(red: 0.46, green: 0.29, blue: 0.64)], startPoint: .leading, endPoint: .trailing))
+                    .background(LinearGradient(colors: [Color(red: 0.36, green: 0.23, blue: 0.62), Color(red: 0.48, green: 0.32, blue: 0.77)], startPoint: .leading, endPoint: .trailing))
                     .cornerRadius(12).disabled(isLoading || kamiText.isEmpty)
+                    .scaleEffect(isPressed ? 0.96 : 1.0)
+                    .animation(.easeInOut(duration: 0.15), value: isPressed)
                 }
                 .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
                 Spacer()
@@ -51,8 +57,8 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UserDefaults.standard.set(true, forKey: "isActivated"); onVerified() }
-                    else { errorMessage = (json["msg"] as? String) ?? "验证失败" }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); onVerified() }
+                    else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }
         }.resume()
@@ -76,18 +82,23 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.12, green: 0.1, blue: 0.22), Color(red: 0.08, green: 0.13, blue: 0.24), Color(red: 0.05, green: 0.07, blue: 0.16)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
                             Image("Icon")
                                 .resizable()
                                 .cornerRadius(22)
-                                .frame(maxWidth: 100, maxHeight: 100)
-                                .shadow(radius: 10)
-                            Text("TrollInstallerX")
-                                .font(.system(size: 30, weight: .semibold, design: .rounded))
+                                .frame(maxWidth: 120, maxHeight: 120)
+                                .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.5), radius: 20, x: 0, y: 5)
+                                .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.3), radius: 40, x: 0, y: 10)
+                            Text("巨魔安装器")
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
+                                .padding(.top, 4)
+                            Text("版本号：1.0")
+                                .font(.system(size: 14, weight: .regular, design: .rounded))
+                                .foregroundColor(.white.opacity(0.45))
                         }
                         .padding(.vertical)
                         if !isInstalling {
@@ -123,6 +134,11 @@ struct MainView: View {
                                         .padding()
                                         .frame(maxWidth: geometry.size.width / 1.2)
                                         .frame(maxHeight: 60)
+                                        .background(
+                                            LinearGradient(colors: [Color(red: 0.36, green: 0.23, blue: 0.62), Color(red: 0.48, green: 0.32, blue: 0.77)], startPoint: .leading, endPoint: .trailing)
+                                        )
+                                        .cornerRadius(14)
+                                        .shadow(color: Color(red: 0.36, green: 0.23, blue: 0.62).opacity(0.4), radius: 16, x: 0, y: 8)
                                 })
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: 60)
