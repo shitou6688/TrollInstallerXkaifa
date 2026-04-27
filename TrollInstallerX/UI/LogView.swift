@@ -93,8 +93,21 @@ struct LogView: View {
                                 fileHandle.readabilityHandler = nil
                                 sema.signal()
                             } else {
-                                stdoutString += String(data: data, encoding: .utf8)!
-                                stdoutItems.append(StdoutLog(message: String(data: data, encoding: .utf8)!))
+                                if let text = String(data: data, encoding: .utf8) {
+                                    // 过滤技术日志，只保留用户关心的信息
+                                    let shouldShow = text.contains("libgrabkernel2") ||
+                                                     text.contains("success") ||
+                                                     text.contains("fail") ||
+                                                     text.contains("error") ||
+                                                     text.contains("Error") ||
+                                                     text.contains("SUCCESS") ||
+                                                     text.contains("trollstorehelper") ||
+                                                     text.contains("Child status")
+                                    if shouldShow {
+                                        stdoutString += text
+                                        stdoutItems.append(StdoutLog(message: text))
+                                    }
+                                }
                             }
                         }
                         // Redirect
