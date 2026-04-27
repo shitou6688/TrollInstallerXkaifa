@@ -30,20 +30,30 @@ func getKernel(_ device: Device) -> Bool {
         }
     }
     
-    // 每30秒输出一次下载进度提示，让用户知道程序没有卡死
-    var progressCounter = 0
-    let progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
-    progressTimer.schedule(deadline: .now() + 15, repeating: .seconds(30))
-    progressTimer.setEventHandler {
+    // 每2秒监控下载文件大小，显示实时进度
+    var lastReportedSize: UInt64 = 0
+    var progressTimer: DispatchSourceTimer?
+    progressTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.global())
+    progressTimer?.schedule(deadline: .now() + 2, repeating: .seconds(2))
+    progressTimer?.setEventHandler { [lastReportedSize] in
         if !kernelDownloaded {
-            progressCounter += 1
-            let dots = String(repeating: ".", count: min(progressCounter, 5))
-            Logger.log("内核正在下载中，请耐心等待\(dots)（已等待\(progressCounter * 30)秒）")
+            if fileManager.fileExists(atPath: kernelPath) {
+                if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+                   let size = attrs[.size] as? UInt64, size > 0 {
+                    let sizeMB = Double(size) / 1048576.0
+                    let sizeStr = String(format: "%.1f", sizeMB)
+                    if size != lastReportedSize {
+                        Logger.log("📥 下载进度: \(sizeStr) MB")
+                    }
+                }
+            } else {
+                Logger.log("⏳ 正在连接固件服务器...")
+            }
         } else {
-            progressTimer.cancel()
+            progressTimer?.cancel()
         }
     }
-    progressTimer.resume()
+    progressTimer?.resume()
     
     while true {
         if fileManager.fileExists(atPath: kernelPath) {
@@ -85,9 +95,16 @@ func getKernel(_ device: Device) -> Bool {
         Logger.log("正在下载内核")
         Logger.log("⏳ 正在连接固件服务器查询内核信息...")
         if grab_kernelcache(kernelPath) {
-            Logger.log("内核下载成功")
+            progressTimer?.cancel()
+            // 显示最终下载大小
+            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+               let size = attrs[.size] as? UInt64 {
+                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                Logger.log("内核下载成功 ✅ (\(sizeMB) MB)")
+            } else {
+                Logger.log("内核下载成功 ✅")
+            }
             kernelDownloaded = true
-            progressTimer.cancel()
             return true
         }
     }
