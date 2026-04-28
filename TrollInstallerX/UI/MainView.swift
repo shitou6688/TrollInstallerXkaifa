@@ -1,4 +1,4 @@
-﻿//
+//
 // LaunchView.swift
 // TrollInstallerX
 //
@@ -15,14 +15,14 @@ struct ActivationView: View {
     let onVerified: () -> Void
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.055, green: 0.075, blue: 0.160), Color(red: 0.098, green: 0.130, blue: 0.200)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
             VStack(spacing: 20) {
                 Spacer()
-                Text("宸ㄩ瓟瀹夎鍣?).font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
-                Text("璇疯緭鍏ュ崱瀵嗕互婵€娲讳娇鐢?).font(.subheadline).foregroundColor(Color(white: 0.6))
+                Text("巨魔安装器").font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
+                Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
                 VStack(spacing: 16) {
-                    TextField("璇疯緭鍏ュ崱瀵?, text: $kamiText)
+                    TextField("请输入卡密", text: $kamiText)
                         .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
                     if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
                     Button(action: {
@@ -30,7 +30,7 @@ struct ActivationView: View {
                         verifyCard()
                     }) {
                         if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
-                        else { Text("楠岃瘉婵€娲?).fontWeight(.semibold).foregroundColor(.white) }
+                        else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
                     }
                     .frame(maxWidth: .infinity).padding()
                     .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
@@ -41,8 +41,8 @@ struct ActivationView: View {
                 .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
                 Spacer()
                 VStack(spacing: 6) {
-                    Text("馃摝 鐗堟湰锛?.0").font(.caption2).foregroundColor(.gray)
-                    Text("馃挌 鍩轰簬TrollInstallerX椤圭洰寮€鍙?).font(.caption2).foregroundColor(.gray)
+                    Text("📦 版本：1.0").font(.caption2).foregroundColor(.gray)
+                    Text("💚 基于TrollInstallerX项目开发").font(.caption2).foregroundColor(.gray)
                 }.padding(.bottom, 30)
             }
         }
@@ -58,8 +58,8 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
                     if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); onVerified() }
-                    else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "楠岃瘉澶辫触" }
-                } else { errorMessage = "缃戠粶璇锋眰澶辫触" }
+                    else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
+                } else { errorMessage = "网络请求失败" }
             }
         }.resume()
     }
@@ -82,7 +82,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.055, green: 0.075, blue: 0.160), Color(red: 0.098, green: 0.130, blue: 0.200)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
@@ -92,11 +92,11 @@ struct MainView: View {
                                 .frame(maxWidth: 120, maxHeight: 120)
                                 .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.4), radius: 20, x: 0, y: 5)
                                 .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.2), radius: 40, x: 0, y: 10)
-                            Text("宸ㄩ瓟瀹夎鍣?)
+                            Text("巨魔安装器")
                                 .font(.system(size: 30, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                                 .padding(.top, 4)
-                            Text("鐗堟湰鍙凤細1.0")
+                            Text("版本号：1.0")
                                 .font(.system(size: 14, weight: .regular, design: .rounded))
                                 .foregroundColor(.white.opacity(0.45))
                         }
@@ -128,7 +128,7 @@ struct MainView: View {
                                         withAnimation { isInstalling.toggle() }
                                     }
                                 }, label: {
-                                    Text(device.isSupported ? "瀹夎 TrollStore" : "涓嶆敮鎸?)
+                                    Text(device.isSupported ? "安装 TrollStore" : "不支持")
                                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                                         .foregroundColor(device.isSupported ? .white : .secondary)
                                         .padding()
