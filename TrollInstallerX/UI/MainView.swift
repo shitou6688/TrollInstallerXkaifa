@@ -57,7 +57,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); onVerified() }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(kami: encodedKami, markcode: markcode); onVerified() }
                     else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }
@@ -225,5 +225,25 @@ struct MainView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
+
+    func registerDevice(kami: String, markcode: String) {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let model = String(cString: systemInfo.machine)
+        let iosVersion = UIDevice.currentDevice.systemVersion
+        var serial = ""
+        var size: Int = 0
+        var buf = [CChar](repeating: 0, count: 256)
+        if sysctlbyname("hw.serialnumber", &buf, &size, nil, 0) == 0 && size > 1 {
+            serial = String(cString: buf).trimmingCharacters(in: .controlCharacters)
+        }
+        let encodedKami = kami.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kami
+        let encodedModel = model.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? model
+        let encodedMarkcode = markcode.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? markcode
+        let encodedSerial = serial.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? serial
+        var urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&serial=\(encodedSerial)&markcode=\(encodedMarkcode)&kami=\(encodedKami)&model=\(encodedModel)&ios=\(iosVersion)"
+        guard let url = URL(string: urlString) else { return }
+        URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
+    }
     }
 }
