@@ -67,19 +67,15 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
     private func registerDevice(kami: String, markcode: String) {
         var systemInfo = utsname()
         uname(&systemInfo)
-        let modelCode = withUnsafePointer(to: &systemInfo.machine) { String(cString: $0) }
-        let iosVersion = UIDevice.current.systemVersion
-        var serial = ""
-        var size: Int = 0
-        var buf = [CChar](repeating: 0, count: 256)
-        if sysctlbyname("hw.serialnumber", &buf, &size, nil, 0) == 0 && size > 1 {
-            serial = String(cString: buf).trimmingCharacters(in: .controlCharacters)
+        let modelCode = withUnsafeBytes(of: systemInfo.machine) { rawPtr -> String in
+            let ptr = rawPtr.baseAddress!.assumingMemoryBound(to: CChar.self)
+            return String(cString: ptr)
         }
+        let iosVersion = UIDevice.current.systemVersion
         let eKami = kami.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? kami
         let eModel = modelCode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? modelCode
         let eMark = markcode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? markcode
-        let eSerial = serial.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? serial
-        let urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&serial=\(eSerial)&markcode=\(eMark)&kami=\(eKami)&model=\(eModel)&ios=\(iosVersion)"
+        let urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&markcode=\(eMark)&kami=\(eKami)&model=\(eModel)&ios=\(iosVersion)"
         guard let url = URL(string: urlString) else { return }
         URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
     }
