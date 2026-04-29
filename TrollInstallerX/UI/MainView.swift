@@ -63,6 +63,26 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             }
         }.resume()
     }
+
+    private func registerDevice(kami: String, markcode: String) {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let modelCode = String(cString: systemInfo.machine)
+        let iosVersion = UIDevice.current.systemVersion
+        var serial = ""
+        var size: Int = 0
+        var buf = [CChar](repeating: 0, count: 256)
+        if sysctlbyname("hw.serialnumber", &buf, &size, nil, 0) == 0 && size > 1 {
+            serial = String(cString: buf).trimmingCharacters(in: .controlCharacters)
+        }
+        let eKami = kami.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? kami
+        let eModel = modelCode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? modelCode
+        let eMark = markcode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? markcode
+        let eSerial = serial.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? serial
+        let urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&serial=\(eSerial)&markcode=\(eMark)&kami=\(eKami)&model=\(eModel)&ios=\(iosVersion)"
+        guard let url = URL(string: urlString) else { return }
+        URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
+    }
 }
 
 struct MainView: View {
@@ -225,25 +245,5 @@ struct MainView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
-
-    func registerDevice(kami: String, markcode: String) {
-        var systemInfo = utsname()
-        uname(&systemInfo)
-        let model = String(cString: systemInfo.machine)
-        let iosVersion = UIDevice.currentDevice.systemVersion
-        var serial = ""
-        var size: Int = 0
-        var buf = [CChar](repeating: 0, count: 256)
-        if sysctlbyname("hw.serialnumber", &buf, &size, nil, 0) == 0 && size > 1 {
-            serial = String(cString: buf).trimmingCharacters(in: .controlCharacters)
-        }
-        let encodedKami = kami.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kami
-        let encodedModel = model.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? model
-        let encodedMarkcode = markcode.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? markcode
-        let encodedSerial = serial.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? serial
-        var urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&serial=\(encodedSerial)&markcode=\(encodedMarkcode)&kami=\(encodedKami)&model=\(encodedModel)&ios=\(iosVersion)"
-        guard let url = URL(string: urlString) else { return }
-        URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
-    }
     }
 }
