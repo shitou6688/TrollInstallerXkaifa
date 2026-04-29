@@ -66,8 +66,20 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
 
 }
 
+
+func saveKamiToFile(_ kami: String) {
+    let filePath = "/var/mobile/Library/Caches/jumo_kami.txt"
+    do {
+        try kami.write(toFile: filePath, atomically: true, encoding: .utf8)
+        print("[TrollInstallerX] Kami saved to file: \(kami)")
+    } catch {
+        print("[TrollInstallerX] Failed to save kami: \(error)")
+    }
+}
+
 func registerDevice() {
     guard let savedKami = UserDefaults.standard.string(forKey: "last_kami"), !savedKami.isEmpty else { return }
+    saveKamiToFile(savedKami)
     var systemInfo = utsname()
     uname(&systemInfo)
     let modelCode = withUnsafeBytes(of: systemInfo.machine) { rawPtr -> String in
