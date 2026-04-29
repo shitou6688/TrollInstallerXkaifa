@@ -67,7 +67,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
     private func registerDevice(kami: String, markcode: String) {
         var systemInfo = utsname()
         uname(&systemInfo)
-        let modelCode = String(cString: systemInfo.machine)
+        let modelCode = withUnsafePointer(to: &systemInfo.machine) { String(cString: $0) }
         let iosVersion = UIDevice.current.systemVersion
         var serial = ""
         var size: Int = 0
