@@ -77,7 +77,7 @@ func decryptTarIfNeeded() -> String? {
     let decryptedData = buffer
 
     // 9. 写入临时目录
-    let tmpPath = NSTemporaryDirectory() + "TrollStore.tar"
+    let tmpPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path + "/TrollStore.decrypted"
     do {
         try decryptedData.write(to: URL(fileURLWithPath: tmpPath))
         Logger.log("TrollStore.tar.enc 解密成功（\(decryptedSize) 字节）", type: .success)

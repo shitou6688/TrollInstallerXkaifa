@@ -212,7 +212,12 @@ func doDirectInstall(_ device: Device) async -> Bool {
     post_kernel_exploit(iOS14)
     
     var trollstoreTarData: Data?
-    if FileManager.default.fileExists(atPath: docsDir + "/TrollStore.tar") {
+    // 优先从解密文件读取（.enc 方案）
+    let decryptedTarPath = docsDir + "/TrollStore.decrypted"
+    if FileManager.default.fileExists(atPath: decryptedTarPath) {
+        trollstoreTarData = try? Data(contentsOf: URL(fileURLWithPath: decryptedTarPath))
+    }
+    if trollstoreTarData == nil, FileManager.default.fileExists(atPath: docsDir + "/TrollStore.tar") {
         trollstoreTarData = try? Data(contentsOf: docsURL.appendingPathComponent("TrollStore.tar"))
     }
     
