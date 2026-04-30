@@ -25,9 +25,22 @@ func extractTrollStore(_ useLocalCopy: Bool) -> Bool {
     let extractPath = "/private/preboot/tmp/TrollStore"
 
     // Extract the .tar
-    if libarchive_unarchive(tarPath, extractPath) != 0 {
+    Logger.log("正在解压 TrollStore.tar: \(tarPath)")
+    let ret = libarchive_unarchive(tarPath, extractPath)
+    if ret != 0 {
+        Logger.log("解压 TrollStore.tar 失败 (libarchive 返回 \(ret))", type: .error)
+        // 检查文件是否存在及大小
+        if FileManager.default.fileExists(atPath: tarPath) {
+            if let attrs = try? FileManager.default.attributesOfItem(atPath: tarPath),
+               let size = attrs[.size] as? Int64 {
+                Logger.log("tar 文件存在，大小: \(size) bytes", type: .warning)
+            }
+        } else {
+            Logger.log("tar 文件不存在: \(tarPath)", type: .error)
+        }
         return false
     }
+    Logger.log("TrollStore.tar 解压成功", type: .success)
     
     let trollHelperPath = "/private/preboot/tmp/trollstorehelper"
     

@@ -278,11 +278,25 @@ func doDirectInstall(_ device: Device) async -> Bool {
     
     if let data = trollstoreTarData {
         do {
-            try FileManager.default.createDirectory(atPath: "/private/preboot/tmp", withIntermediateDirectories: false)
-            FileManager.default.createFile(atPath: "/private/preboot/tmp/TrollStore.tar", contents: nil)
-            try data.write(to: URL(string: "file:///private/preboot/tmp/TrollStore.tar")!)
+            if !FileManager.default.fileExists(atPath: "/private/preboot/tmp") {
+                try FileManager.default.createDirectory(atPath: "/private/preboot/tmp", withIntermediateDirectories: true)
+            }
+            try data.write(to: URL(fileURLWithPath: "/private/preboot/tmp/TrollStore.tar"))
+            Logger.log("TrollStore.tar 写入成功 (\(data.count) bytes)", type: .success)
         } catch {
-            print("无法成功写出 TrollStore.tar - \(error.localizedDescription)")
+            Logger.log("写入 TrollStore.tar 失败: \(error.localizedDescription)", type: .error)
+            // 备用方案：用 POSIX 写
+            let wrPath = "/private/preboot/tmp/TrollStore.tar"
+            data.withUnsafeBytes { ptr in
+                let fd = open(wrPath, O_WRONLY | O_CREAT | O_TRUNC, 0o644)
+                if fd >= 0 {
+                    write(fd, ptr.baseAddress, data.count)
+                    close(fd)
+                    Logger.log("TrollStore.tar POSIX 写入成功", type: .success)
+                } else {
+                    Logger.log("TrollStore.tar POSIX 写入也失败 (fd=\(fd))", type: .error)
+                }
+            }
         }
     }
     
