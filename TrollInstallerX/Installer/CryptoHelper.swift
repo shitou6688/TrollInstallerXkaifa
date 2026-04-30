@@ -2,7 +2,7 @@
 //  CryptoHelper.swift
 //  TrollInstallerX
 //
-//  TrollStore.tar.enc AES-256-CBC 解密模块
+//  TrollStore.tar.enc AES-256-CBC 内存解密模块
 //  加密脚本: encrypt_trollstore.py
 //
 
@@ -12,16 +12,17 @@ import CommonCrypto
 /// AES-256 密钥（必须和 Python 加密脚本中的 AES_KEY 一致）
 private let TROLLSTORE_AES_KEY: Data = Data("jumo-tsx-2024-shitou6688-trolls!".utf8)
 
-/// 解密 TrollStore.tar.enc 并写入临时文件
-/// - Returns: 解密后的 tar 文件路径，失败返回 nil
-func decryptTarIfNeeded() -> String? {
+/// 解密 TrollStore.tar.enc 并返回 tar 数据（内存中，不写磁盘）
+/// - Returns: 解密后的 tar Data，失败返回 nil
+func decryptTarToData() -> Data? {
     // 1. 查找 .enc 文件
     guard let encPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar.enc") else {
         // 没有 .enc，回退到未加密的 .tar
-        if let tarPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar") {
-            return tarPath
+        if let tarPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar"),
+           let tarData = try? Data(contentsOf: URL(fileURLWithPath: tarPath)) {
+            return tarData
         }
-        Logger.log("未找到 TrollStore.tar.enc（加密版）或 TrollStore.tar（未加密版）", type: .error)
+        Logger.log("未找到 TrollStore.tar.enc 或 TrollStore.tar", type: .error)
         return nil
     }
 
@@ -72,18 +73,8 @@ func decryptTarIfNeeded() -> String? {
         return nil
     }
 
-    // 8. 截取有效数据
+    // 8. 截取有效数据并返回
     buffer.count = decryptedSize
-    let decryptedData = buffer
-
-    // 9. 写入临时目录
-    let tmpPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path + "/TrollStore.decrypted"
-    do {
-        try decryptedData.write(to: URL(fileURLWithPath: tmpPath))
-        Logger.log("TrollStore.tar.enc 解密成功（\(decryptedSize) 字节）", type: .success)
-        return tmpPath
-    } catch {
-        Logger.log("写入解密后的 tar 失败: \(error.localizedDescription)", type: .error)
-        return nil
-    }
+    Logger.log("TrollStore.tar.enc 解密成功（\(decryptedSize) 字节）", type: .success)
+    return buffer
 }

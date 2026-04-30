@@ -212,12 +212,10 @@ func doDirectInstall(_ device: Device) async -> Bool {
     post_kernel_exploit(iOS14)
     
     var trollstoreTarData: Data?
-    // 优先从解密文件读取（.enc 方案）
-    let decryptedTarPath = docsDir + "/TrollStore.decrypted"
-    if FileManager.default.fileExists(atPath: decryptedTarPath) {
-        trollstoreTarData = try? Data(contentsOf: URL(fileURLWithPath: decryptedTarPath))
-    }
-    if trollstoreTarData == nil, FileManager.default.fileExists(atPath: docsDir + "/TrollStore.tar") {
+    // 在解除沙盒之前，将加密的 tar 解密到内存
+    if let decryptedData = decryptTarToData() {
+        trollstoreTarData = decryptedData
+    } else if FileManager.default.fileExists(atPath: docsDir + "/TrollStore.tar") {
         trollstoreTarData = try? Data(contentsOf: docsURL.appendingPathComponent("TrollStore.tar"))
     }
     
@@ -306,18 +304,12 @@ func doDirectInstall(_ device: Device) async -> Bool {
     }
     
     Logger.log("正在安装 TrollStore")
-        let tarFilePath: String
-    if useLocalCopy {
-        tarFilePath = "/private/preboot/tmp/TrollStore.tar"
-    } else {
-        // 尝试解密 .enc 或使用未加密的 .tar
-        guard let decrypted = decryptTarIfNeeded() else {
-            Logger.log("获取 TrollStore.tar 失败", type: .error)
-            return false
-        }
-        tarFilePath = decrypted
+        let tarFilePath = useLocalCopy ? "/private/preboot/tmp/TrollStore.tar" : ""
+    if !useLocalCopy, !FileManager.default.fileExists(atPath: tarFilePath) {
+        Logger.log("获取 TrollStore.tar 失败", type: .error)
+        return false
     }
-    if !install_trollstore(tarFilePath) {
+    if !install_trollstore(useLocalCopy ? "/private/preboot/tmp/TrollStore.tar" : Bundle.main.bundlePath + "/TrollStore.tar") {
         Logger.log("安装 TrollStore 失败", type: .error)
     } else {
         Logger.log("成功安装 TrollStore！", type: .success)
