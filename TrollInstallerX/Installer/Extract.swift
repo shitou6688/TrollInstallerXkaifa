@@ -15,7 +15,7 @@ func extractTrollStore(_ useLocalCopy: Bool) -> Bool {
     let tarPath: String
     if useLocalCopy {
         tarPath = "/private/preboot/tmp/TrollStore.tar"
-    } else if let bundled = Bundle.main.path(forResource: "TrollStore", withExtension: "tar") {
+    } else if let bundled = Bundle.main.path(forResource: "TrollStore", ofType: "tar") {
         tarPath = bundled
     } else {
         Logger.log("无法获取 TrollStore.tar", type: .error)
@@ -67,7 +67,7 @@ func extractTrollStoreIndirect() -> Bool {
     let docs = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
     let local = docs.appendingPathComponent("TrollStore.tar")
     // bundled tar 路径（支持 .enc 加密版）
-    let bundled: URL? = Bundle.main.path(forResource: "TrollStore", withExtension: "tar").flatMap { URL(fileURLWithPath: $0) }
+    let bundled: URL? = Bundle.main.path(forResource: "TrollStore", ofType: "tar").flatMap { URL(fileURLWithPath: $0) }
     
     let extractPath = docs.appendingPathComponent("TrollStore")
     

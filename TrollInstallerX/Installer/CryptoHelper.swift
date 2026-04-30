@@ -18,7 +18,7 @@ func decryptTarToData() -> Data? {
     // 1. 查找 .enc 文件
     guard let encPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar.enc") else {
         // 没有 .enc，回退到未加密的 .tar
-        if let tarPath = Bundle.main.path(forResource: "TrollStore", withExtension: "tar"),
+        if let tarPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar"),
            let tarData = try? Data(contentsOf: URL(fileURLWithPath: tarPath)) {
             return tarData
         }
