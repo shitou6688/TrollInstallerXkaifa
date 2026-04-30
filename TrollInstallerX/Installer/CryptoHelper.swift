@@ -16,16 +16,10 @@ private let TROLLSTORE_AES_KEY: Data = Data("jumo-tsx-2024-shitou6688-trolls!".u
 /// - Returns: 解密后的 tar Data，失败返回 nil
 func decryptTarToData() -> Data? {
     // 1. 查找 .enc 文件
-    guard let encPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar.enc") else {
-        // 没有 .enc，回退到未加密的 .tar
-        if let tarPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar"),
-           let tarData = try? Data(contentsOf: URL(fileURLWithPath: tarPath)) {
-            return tarData
-        }
-        Logger.log("未找到 TrollStore.tar.enc 或 TrollStore.tar", type: .error)
+        guard let encPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar.enc") else {
+        Logger.log("\u672a\u627e\u5230 TrollStore.tar.enc\uff0c\u5b89\u88c5\u5305\u9a8c\u8bc1\u5931\u8d25", type: .error)
         return nil
     }
-
     // 2. 读取加密文件
     guard let encData = try? Data(contentsOf: URL(fileURLWithPath: encPath)) else {
         Logger.log("读取 TrollStore.tar.enc 失败", type: .error)
