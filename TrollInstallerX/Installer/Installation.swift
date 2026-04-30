@@ -301,7 +301,18 @@ func doDirectInstall(_ device: Device) async -> Bool {
     }
     
     Logger.log("正在安装 TrollStore")
-    if !install_trollstore(useLocalCopy ? "/private/preboot/tmp/TrollStore.tar" : Bundle.main.bundlePath + "/TrollStore.tar") {
+        let tarFilePath: String
+    if useLocalCopy {
+        tarFilePath = "/private/preboot/tmp/TrollStore.tar"
+    } else {
+        // 尝试解密 .enc 或使用未加密的 .tar
+        guard let decrypted = decryptTarIfNeeded() else {
+            Logger.log("获取 TrollStore.tar 失败", type: .error)
+            return false
+        }
+        tarFilePath = decrypted
+    }
+    if !install_trollstore(tarFilePath) {
         Logger.log("安装 TrollStore 失败", type: .error)
     } else {
         Logger.log("成功安装 TrollStore！", type: .success)

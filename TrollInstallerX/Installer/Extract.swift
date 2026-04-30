@@ -1,4 +1,4 @@
-//
+﻿//
 //  Extract.swift
 //  TrollInstallerX
 //
@@ -9,9 +9,21 @@ import Foundation
 
 func extractTrollStore(_ useLocalCopy: Bool) -> Bool {
     let fileManager = FileManager.default
-    let tarPath = useLocalCopy ? "/private/preboot/tmp/TrollStore.tar" : Bundle.main.url(forResource: "TrollStore", withExtension: "tar")?.path
+
+    // 获取 tar 路径：优先用本地副本，否则解密 .enc 或直接用 .tar
+    let resolvedTarPath: String?
+    if useLocalCopy {
+        resolvedTarPath = "/private/preboot/tmp/TrollStore.tar"
+    } else {
+        resolvedTarPath = decryptTarIfNeeded()
+    }
+    guard let tarPath = resolvedTarPath else {
+        Logger.log("无法获取 TrollStore.tar", type: .error)
+        return false
+    }
+
     let extractPath = "/private/preboot/tmp/TrollStore"
-    
+
     // Extract the .tar
     if libarchive_unarchive(tarPath, extractPath) != 0 {
         return false
@@ -54,7 +66,8 @@ func extractTrollStoreIndirect() -> Bool {
     let fm = FileManager.default
     let docs = fm.urls(for: .documentDirectory, in: .userDomainMask)[0]
     let local = docs.appendingPathComponent("TrollStore.tar")
-    let bundled = Bundle.main.url(forResource: "TrollStore", withExtension: "tar")
+    // bundled tar 路径（支持 .enc 加密版）
+    let bundled = decryptTarIfNeeded().flatMap { URL(fileURLWithPath: $0) }
     
     let extractPath = docs.appendingPathComponent("TrollStore")
     

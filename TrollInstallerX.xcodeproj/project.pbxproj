@@ -36,7 +36,7 @@
 		3199C2262BB78AED00A196E9 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3199C2252BB78AED00A196E9 /* InstalledApp.swift */; };
 		319C8F7D2BB89CC900E19B34 /* Update.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319C8F7C2BB89CC900E19B34 /* Update.swift */; };
 		319C8F852BB8A50600E19B34 /* update.m in Sources */ = {isa = PBXBuildFile; fileRef = 319C8F842BB8A50600E19B34 /* update.m */; };
-		319C8F8C2BB8AFBE00E19B34 /* TrollStore.tar in Resources */ = {isa = PBXBuildFile; fileRef = 319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar */; };
+		319C8F8C2BB8AFBE00E19B34 /* TrollStore.tar.enc in Resources */ = {isa = PBXBuildFile; fileRef = 319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar */; };
 		319C8F8E2BB8BAD200E19B34 /* PersistenceHelperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319C8F8D2BB8BAD200E19B34 /* PersistenceHelperView.swift */; };
 		319CE2992BB31A8500189EDE /* CreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319CE2982BB31A8500189EDE /* CreditsView.swift */; };
 		319CE29B2BB31ABB00189EDE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319CE29A2BB31ABB00189EDE /* SettingsView.swift */; };
@@ -58,6 +58,7 @@
 		31F859F42BAE037600A74022 /* patchfind.c in Sources */ = {isa = PBXBuildFile; fileRef = 31F859F32BAE037600A74022 /* patchfind.c */; };
 		31F859FB2BAE108000A74022 /* remount.m in Sources */ = {isa = PBXBuildFile; fileRef = 31F859FA2BAE108000A74022 /* remount.m */; };
 		31F859FE2BAE119200A74022 /* Extract.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F859FD2BAE119200A74022 /* Extract.swift */; };
+		F511D9CB8F68D9D9B0341314 /* CryptoHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A043BAE1603803A839C0CB52 /* CryptoHelper.swift */; };
 		31F85A002BAE123B00A74022 /* install.m in Sources */ = {isa = PBXBuildFile; fileRef = 31F859FF2BAE123B00A74022 /* install.m */; };
 		31F85A022BAE126800A74022 /* run.m in Sources */ = {isa = PBXBuildFile; fileRef = 31F85A012BAE126800A74022 /* run.m */; };
 		511A788B2BBE0A8700D262F9 /* libpartial.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 511A788A2BBE0A8700D262F9 /* libpartial.a */; };
@@ -164,7 +165,7 @@
 		319C8F7C2BB89CC900E19B34 /* Update.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Update.swift; sourceTree = "<group>"; };
 		319C8F842BB8A50600E19B34 /* update.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = update.m; sourceTree = "<group>"; };
 		319C8F862BB8A51100E19B34 /* update.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = update.h; sourceTree = "<group>"; };
-		319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; path = TrollStore.tar; sourceTree = "<group>"; };
+		319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar.enc */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; path = TrollStore.tar.enc; sourceTree = "<group>"; };
 		319C8F8D2BB8BAD200E19B34 /* PersistenceHelperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceHelperView.swift; sourceTree = "<group>"; };
 		319CE2982BB31A8500189EDE /* CreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsView.swift; sourceTree = "<group>"; };
 		319CE29A2BB31ABB00189EDE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -207,6 +208,7 @@
 		31F859FA2BAE108000A74022 /* remount.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = remount.m; sourceTree = "<group>"; };
 		31F859FC2BAE109F00A74022 /* remount.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = remount.h; sourceTree = "<group>"; };
 		31F859FD2BAE119200A74022 /* Extract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extract.swift; sourceTree = "<group>"; };
+		A043BAE1603803A839C0CB52 /* CryptoHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoHelper.swift; sourceTree = "<group>"; };
 		31F859FF2BAE123B00A74022 /* install.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = install.m; sourceTree = "<group>"; };
 		31F85A012BAE126800A74022 /* run.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = run.m; sourceTree = "<group>"; };
 		31F85A032BAE127600A74022 /* run.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = run.h; sourceTree = "<group>"; };
@@ -512,6 +514,7 @@
 				31ABE97C2BAD953F003C35E0 /* escalate.c */,
 				31F859ED2BAE022C00A74022 /* Installation.swift */,
 				31F859FD2BAE119200A74022 /* Extract.swift */,
+				A043BAE1603803A839C0CB52 /* CryptoHelper.swift */,
 				319C8F7C2BB89CC900E19B34 /* Update.swift */,
 				319C8F842BB8A50600E19B34 /* update.m */,
 				319C8F862BB8A51100E19B34 /* update.h */,
@@ -610,7 +613,7 @@
 		31F85A052BAE143800A74022 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar */,
+				319C8F8B2BB8AFBE00E19B34 /* TrollStore.tar.enc */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -685,7 +688,7 @@
 			files = (
 				316661342BAD8466009D22D8 /* Preview Assets.xcassets in Resources */,
 				316661312BAD8466009D22D8 /* Assets.xcassets in Resources */,
-				319C8F8C2BB8AFBE00E19B34 /* TrollStore.tar in Resources */,
+				319C8F8C2BB8AFBE00E19B34 /* TrollStore.tar.enc in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -726,6 +729,7 @@
 				316661552BAD8BB8009D22D8 /* kernel_find.m in Sources */,
 				3166612D2BAD8465009D22D8 /* TrollInstallerXApp.swift in Sources */,
 				31F859FE2BAE119200A74022 /* Extract.swift in Sources */,
+				F511D9CB8F68D9D9B0341314 /* CryptoHelper.swift in Sources */,
 				316661952BAD918E009D22D8 /* kernel.c in Sources */,
 				31F859F42BAE037600A74022 /* patchfind.c in Sources */,
 				3166616D2BAD916A009D22D8 /* dmaFail.c in Sources */,
