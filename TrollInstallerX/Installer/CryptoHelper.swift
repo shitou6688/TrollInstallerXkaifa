@@ -18,7 +18,7 @@ func decryptTarToData() -> Data? {
     // 1. 查找 .enc 文件
     guard let encPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar.enc") else {
         // 没有 .enc，回退到未加密的 .tar
-        if let tarPath = Bundle.main.path(forResource: "TrollStore", ofType: "tar"),
+        if let tarPath = Bundle.main.path(forResource: "TrollStore", withExtension: "tar"),
            let tarData = try? Data(contentsOf: URL(fileURLWithPath: tarPath)) {
             return tarData
         }
@@ -41,14 +41,15 @@ func decryptTarToData() -> Data? {
     // 4. 提取 IV（前 16 字节）和密文
     let ivData = encData.prefix(16)
     let cipherData = encData.dropFirst(16)
+    let cipherLen = cipherData.count
 
     // 5. 准备解密缓冲区
-    let bufferSize = cipherData.count + kCCBlockSizeAES128
+    let bufferSize = cipherLen + kCCBlockSizeAES128
     var buffer = Data(count: bufferSize)
+    var decryptedLen = 0
 
     // 6. AES-256-CBC 解密
-    var decryptedSize = 0
-    let status = cipherData.withUnsafeBytes { cipherBytes in
+    let status: Int32 = cipherData.withUnsafeBytes { cipherBytes in
         ivData.withUnsafeBytes { ivBytes in
             TROLLSTORE_AES_KEY.withUnsafeBytes { keyBytes in
                 buffer.withUnsafeMutableBytes { bufferBytes in
@@ -58,9 +59,9 @@ func decryptTarToData() -> Data? {
                         CCOptions(kCCOptionPKCS7Padding),
                         keyBytes.baseAddress, kCCKeySizeAES256,
                         ivBytes.baseAddress,
-                        cipherBytes.baseAddress, cipherData.count,
+                        cipherBytes.baseAddress, cipherLen,
                         bufferBytes.baseAddress, bufferSize,
-                        &decryptedSize
+                        &decryptedLen
                     )
                 }
             }
@@ -69,12 +70,12 @@ func decryptTarToData() -> Data? {
 
     // 7. 检查解密状态
     if status != kCCSuccess {
-        Logger.log("TrollStore.tar.enc 解密失败（错误码 \(status)）", type: .error)
+        Logger.log("TrollStore.tar.enc 解密失败 (status: \(status))", type: .error)
         return nil
     }
 
     // 8. 截取有效数据并返回
-    buffer.count = decryptedSize
-    Logger.log("TrollStore.tar.enc 解密成功（\(decryptedSize) 字节）", type: .success)
+    buffer.count = decryptedLen
+    Logger.log("TrollStore.tar.enc 解密成功 (\(decryptedLen) bytes)", type: .success)
     return buffer
 }
