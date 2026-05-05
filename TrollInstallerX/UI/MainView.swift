@@ -33,6 +33,7 @@ struct ActivationView: View {
                         else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
                     }
                     .frame(maxWidth: .infinity).padding()
+                    .contentShape(Rectangle())
                     .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
                     .cornerRadius(12).disabled(isLoading || kamiText.isEmpty)
                     .scaleEffect(isPressed ? 0.96 : 1.0)
@@ -174,6 +175,7 @@ struct MainView: View {
                                         .padding()
                                         .frame(maxWidth: geometry.size.width / 1.2)
                                         .frame(maxHeight: 60)
+                                        .contentShape(Rectangle())
                                         .background(
                                             LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
                                         )
