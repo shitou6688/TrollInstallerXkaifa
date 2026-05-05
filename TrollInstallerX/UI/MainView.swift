@@ -29,13 +29,16 @@ struct ActivationView: View {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         verifyCard()
                     }) {
-                        if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
-                        else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
+                        Group {
+                            if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
+                            else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
+                        }
+                        .frame(maxWidth: .infinity).padding()
+                        .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
+                        .cornerRadius(12)
+                        .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity).padding()
-                    .contentShape(Rectangle())
-                    .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                    .cornerRadius(12).disabled(isLoading || kamiText.isEmpty)
+                    .disabled(isLoading || kamiText.isEmpty)
                     .scaleEffect(isPressed ? 0.96 : 1.0)
                     .animation(.easeInOut(duration: 0.15), value: isPressed)
                 }
