@@ -14,9 +14,16 @@ struct ActivationView: View {
     @State private var isPressed = false
     let onVerified: () -> Void
 
+    private var needsComputerAssist: Bool {
+        let device = Device()
+        let v = device.version
+        return (v >= Version("15.8.7") && v <= Version("15.8.7")) || (v >= Version("17.0") && v <= Version("17.0"))
+    }
+
     private var isVersionSupported: Bool {
         let device = Device()
         let v = device.version
+        if needsComputerAssist { return true }
         return v >= Version("14.0") && v <= Version("16.6.1")
     }
 
@@ -29,7 +36,9 @@ struct ActivationView: View {
             LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
-            if isVersionSupported {
+            if needsComputerAssist {
+                computerAssistView
+            } else if isVersionSupported {
                 activationFormView
             } else {
                 unsupportedView
@@ -65,6 +74,53 @@ struct ActivationView: View {
             }
             .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
             Spacer()
+            VStack(spacing: 6) {
+                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
+            }.padding(.bottom, 30)
+        }
+    }
+
+    private var computerAssistView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "desktopcomputer")
+                .font(.system(size: 56))
+                .foregroundColor(.blue)
+                .padding(.bottom, 8)
+
+            Text("巨魔安装器")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            Text("当前系统版本需要特殊处理")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+
+            VStack(spacing: 12) {
+                HStack {
+                    Text("当前版本")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.6))
+                    Spacer()
+                    Text("iOS \(currentVersion)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.blue)
+                }
+            }
+            .padding(16)
+            .background(Color(white: 0.1))
+            .cornerRadius(12)
+            .padding(.horizontal, 36)
+
+            Text("当前版本需要手机连接电脑远程操作，请联系客服")
+                .font(.subheadline)
+                .foregroundColor(.orange)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            Spacer()
+
             VStack(spacing: 6) {
                 Text("版本：1.0").font(.caption2).foregroundColor(.gray)
             }.padding(.bottom, 30)
