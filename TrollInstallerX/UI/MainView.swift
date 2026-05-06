@@ -66,9 +66,7 @@ struct ActivationView: View {
             .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
             Spacer()
             VStack(spacing: 6) {
-                Text("
-   
-     版本：1.0").font(.caption2).foregroundColor(.gray)
+                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
             }.padding(.bottom, 30)
         }
     }
