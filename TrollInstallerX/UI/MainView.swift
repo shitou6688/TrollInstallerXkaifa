@@ -118,11 +118,6 @@ struct ActivationView: View {
             .cornerRadius(12)
             .padding(.horizontal, 36)
 
-            Text("请将系统升级至 iOS 14.0 以上再使用")
-                .font(.caption)
-                .foregroundColor(.white.opacity(0.5))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
 
             Spacer()
 
