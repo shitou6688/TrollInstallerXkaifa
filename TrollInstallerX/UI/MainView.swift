@@ -13,44 +13,127 @@ struct ActivationView: View {
     @State private var errorMessage = ""
     @State private var isPressed = false
     let onVerified: () -> Void
+
+    private var isVersionSupported: Bool {
+        let device = Device()
+        let v = device.version
+        return v >= Version("14.0") && v <= Version("16.6.1")
+    }
+
+    private var currentVersion: String {
+        return UIDevice.current.systemVersion
+    }
+
     var body: some View {
         ZStack {
             LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
-            VStack(spacing: 20) {
-                Spacer()
-                Text("巨魔安装器").font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
-                Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
-                VStack(spacing: 16) {
-                    TextField("请输入卡密", text: $kamiText)
-                        .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
-                    if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
-                    Button(action: {
-                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        verifyCard()
-                    }) {
-                        Group {
-                            if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
-                            else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
-                        }
-                        .frame(maxWidth: .infinity).padding()
-                        .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                        .cornerRadius(12)
-                        .contentShape(Rectangle())
-                    }
-                    .disabled(isLoading || kamiText.isEmpty)
-                    .scaleEffect(isPressed ? 0.96 : 1.0)
-                    .animation(.easeInOut(duration: 0.15), value: isPressed)
-                }
-                .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
-                Spacer()
-                VStack(spacing: 6) {
-                    Text("📦 版本：1.0").font(.caption2).foregroundColor(.gray)
-                    Text("💚 基于TrollInstallerX项目开发").font(.caption2).foregroundColor(.gray)
-                }.padding(.bottom, 30)
+
+            if isVersionSupported {
+                activationFormView
+            } else {
+                unsupportedView
             }
         }
     }
+
+    private var activationFormView: some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Text("巨魔安装器").font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
+            Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
+            VStack(spacing: 16) {
+                TextField("请输入卡密", text: $kamiText)
+                    .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
+                if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
+                Button(action: {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    verifyCard()
+                }) {
+                    Group {
+                        if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
+                        else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
+                    }
+                    .frame(maxWidth: .infinity).padding()
+                    .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
+                    .cornerRadius(12)
+                    .contentShape(Rectangle())
+                }
+                .disabled(isLoading || kamiText.isEmpty)
+                .scaleEffect(isPressed ? 0.96 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: isPressed)
+            }
+            .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
+            Spacer()
+            VStack(spacing: 6) {
+                Text("
+   
+     版本：1.0").font(.caption2).foregroundColor(.gray)
+            }.padding(.bottom, 30)
+        }
+    }
+
+    private var unsupportedView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 56))
+                .foregroundColor(.orange)
+                .padding(.bottom, 8)
+
+            Text("巨魔安装器")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            Text("当前系统版本不支持")
+                .font(.title3)
+                .foregroundColor(.white.opacity(0.9))
+
+            VStack(spacing: 12) {
+                HStack {
+                    Text("当前版本")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.6))
+                    Spacer()
+                    Text("iOS \(currentVersion)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.orange)
+                }
+
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.white.opacity(0.1))
+
+                HStack {
+                    Text("支持范围")
+                        .font(.subheadline)
+                        .foregroundColor(.white.opacity(0.6))
+                    Spacer()
+                    Text("iOS 14.0 - 16.6.1")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.green)
+                }
+            }
+            .padding(16)
+            .background(Color(white: 0.1))
+            .cornerRadius(12)
+            .padding(.horizontal, 36)
+
+            Text("请将系统升级至 iOS 14.0 以上再使用")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.5))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+
+            Spacer()
+
+            VStack(spacing: 6) {
+                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
+            }.padding(.bottom, 30)
+        }
+    }
+
     func verifyCard() {
         guard !kamiText.isEmpty else { return }
         isLoading = true; errorMessage = ""
