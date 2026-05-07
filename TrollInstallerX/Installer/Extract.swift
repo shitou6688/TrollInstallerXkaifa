@@ -105,6 +105,13 @@ func extractTrollStoreIndirect() -> Bool {
                     print("Failed to copy TrollStore.tar - \(error.localizedDescription)")
                     return false
                 }
+            } else if let decryptedData = decryptTarToData() {
+                do {
+                    try decryptedData.write(to: copyPath)
+                } catch {
+                    Logger.log("Failed to write decrypted tar", type: .error)
+                    return false
+                }
             } else {
                 return false
             }
