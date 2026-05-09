@@ -7,6 +7,48 @@
 
 import SwiftUI
 
+// ===== 内核镜像下载（从 kernel0.jumo8.top → shitou6688/kernelcache-mirror） =====
+func downloadKernelFromMirror(_ device: Device) -> Bool {
+    let modelID = device.modelIdentifier
+    let versionStr = device.version.readableString
+    let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
+    
+    // 构建 URL 前缀：iPad 加 /ipad/，iPhone 直接根路径
+    let urlPrefix = modelID.hasPrefix("iPad") ? "https://kernel0.jumo8.top/ipad/" : "https://kernel0.jumo8.top/"
+    
+    // 版本号列表：先试完整版本（16.6.1），再试短版本（16.6）
+    var versionsToTry = [versionStr]
+    let parts = versionStr.split(separator: ".")
+    if parts.count >= 2 {
+        let shortVersion = "\(parts[0]).\(parts[1])"
+        versionsToTry.append(shortVersion)
+    }
+    
+    for ver in versionsToTry {
+        let downloadURL = "\(urlPrefix)\(fixedModel)_\(ver).kernelcache"
+        Logger.log("正在从镜像源下载: \(fixedModel)_\(ver).kernelcache")
+        
+        if let url = URL(string: downloadURL) {
+            do {
+                let data = try Data(contentsOf: url)
+                if data.count > 100000 {
+                    try data.write(to: URL(fileURLWithPath: kernelPath))
+                    let sizeMB = String(format: "%.1f", Double(data.count) / 1048576.0)
+                    Logger.log("镜像下载成功 ✅ (\(sizeMB) MB)", type: .success)
+                    return true
+                } else {
+                    Logger.log("镜像返回数据过小，尝试下一个版本...", type: .warning)
+                }
+            } catch {
+                Logger.log("镜像下载失败，尝试下一个版本...", type: .warning)
+            }
+        }
+    }
+    
+    Logger.log("镜像源未找到匹配内核，将尝试 Apple 官方源", type: .warning)
+    return false
+}
+
 let fileManager = FileManager.default
 let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
 let docsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path
@@ -105,7 +147,16 @@ func getKernel(_ device: Device) -> Bool {
             }
         }
         
-        Logger.log("正在下载内核")
+        // 先尝试从镜像源下载（国内加速）
+        if downloadKernelFromMirror(device) {
+            if fileManager.fileExists(atPath: kernelPath) {
+                progressTimer?.cancel()
+                kernelDownloaded = true
+                return true
+            }
+        }
+        
+        Logger.log("正在下载内核（Apple 官方源）")
         if grab_kernelcache(kernelPath) {
             // 确认文件真的存在（可能被卡死检测删掉了）
             if fileManager.fileExists(atPath: kernelPath) {
