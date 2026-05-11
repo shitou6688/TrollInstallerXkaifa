@@ -6,40 +6,6 @@
 //
 
 import SwiftUI
-import Security
-
-
-// MARK: - Keychain Helpers (persist across app reinstalls on TrollStore)
-func saveActivationToKeychain() {
-    let key = "com.trollinstallerx.activated"
-    let value = "true"
-    let data = value.data(using: .utf8)!
-    let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword,
-        kSecAttrAccount as String: key,
-        kSecValueData as String: data,
-        kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
-    ]
-    SecItemDelete(query as CFDictionary)
-    SecItemAdd(query as CFDictionary, nil)
-}
-
-func isActivatedInKeychain() -> Bool {
-    let key = "com.trollinstallerx.activated"
-    let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword,
-        kSecAttrAccount as String: key,
-        kSecReturnData as String: true,
-        kSecMatchLimit as String: kSecMatchLimitOne
-    ]
-    var result: AnyObject?
-    let status = SecItemCopyMatching(query as CFDictionary, &result)
-    guard status == errSecSuccess, let data = result as? Data,
-          let value = String(data: data, encoding: .utf8), value == "true" else {
-        return false
-    }
-    return true
-}
 
 struct ActivationView: View {
     @State private var kamiText = ""
@@ -227,7 +193,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); saveActivationToKeychain(); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
                     else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }
@@ -417,10 +383,8 @@ struct MainView: View {
                 if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
             }
             .onAppear {
-                let keychainActive = isActivatedInKeychain()
-                if keychainActive { UserDefaults.standard.set(true, forKey: "isActivated") }
-                if UserDefaults.standard.bool(forKey: "isActivated") || keychainActive { registerDevice() }
-                if !keychainActive && !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
+                if UserDefaults.standard.bool(forKey: "isActivated") { registerDevice() }
+                if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
                 if device.isSupported {
                     withAnimation {
                         isShowingOTAAlert = device.supportsOTA
