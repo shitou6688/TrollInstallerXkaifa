@@ -1,4 +1,4 @@
-//
+﻿//
 //  Installation.swift
 //  TrollInstallerX
 //
@@ -148,13 +148,14 @@ func getKernel(_ device: Device) -> Bool {
         }
         
         // 先尝试从镜像源下载（国内加速）
-        if downloadKernelFromMirror(device) {
-            if fileManager.fileExists(atPath: kernelPath) {
-                progressTimer?.cancel()
-                kernelDownloaded = true
-                return true
-            }
-        }
+        // TEMP: 临时禁用镜像源，测试官方 adcdownload.apple.com
+        // if downloadKernelFromMirror(device) {
+        //     if fileManager.fileExists(atPath: kernelPath) {
+        //         progressTimer?.cancel()
+        //         kernelDownloaded = true
+        //         return true
+        //     }
+        // }
         
         Logger.log("正在下载内核（Apple 官方源）")
         if grab_kernelcache(kernelPath) {
