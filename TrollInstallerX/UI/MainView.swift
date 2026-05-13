@@ -17,7 +17,7 @@ struct ActivationView: View {
     private var needsComputerAssist: Bool {
         let device = Device()
         let v = device.version
-        return (v >= Version("15.8.7") && v <= Version("15.8.7")) || (v >= Version("17.0") && v <= Version("17.0"))
+        return (v >= Version("15.8.7") && v <= Version("15.8.8")) || (v >= Version("17.0") && v <= Version("17.0"))
     }
 
     private var isVersionSupported: Bool {
