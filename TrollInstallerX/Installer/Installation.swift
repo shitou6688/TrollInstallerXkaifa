@@ -16,32 +16,23 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
     // 构建 URL 前缀：iPad 加 /ipad/，iPhone 直接根路径
     let urlPrefix = modelID.hasPrefix("iPad") ? "https://kernel0.jumo8.top/ipad/" : "https://kernel0.jumo8.top/"
     
-    // 版本号列表：先试完整版本（16.6.1），再试短版本（16.6）
-    var versionsToTry = [versionStr]
-    let parts = versionStr.split(separator: ".")
-    if parts.count >= 2 {
-        let shortVersion = "\(parts[0]).\(parts[1])"
-        versionsToTry.append(shortVersion)
-    }
+    // 只使用精确版本号，不回退短版本（内核必须版本匹配，否则会重启）
+    let downloadURL = "\(urlPrefix)\(fixedModel)_\(versionStr).kernelcache"
+    Logger.log("正在从镜像源下载: \(fixedModel)_\(versionStr).kernelcache")
     
-    for ver in versionsToTry {
-        let downloadURL = "\(urlPrefix)\(fixedModel)_\(ver).kernelcache"
-        Logger.log("正在从镜像源下载: \(fixedModel)_\(ver).kernelcache")
-        
-        if let url = URL(string: downloadURL) {
-            do {
-                let data = try Data(contentsOf: url)
-                if data.count > 100000 {
-                    try data.write(to: URL(fileURLWithPath: kernelPath))
-                    let sizeMB = String(format: "%.1f", Double(data.count) / 1048576.0)
-                    Logger.log("镜像下载成功 ✅ (\(sizeMB) MB)", type: .success)
-                    return true
-                } else {
-                    Logger.log("镜像返回数据过小，尝试下一个版本...", type: .warning)
-                }
-            } catch {
-                Logger.log("镜像下载失败，尝试下一个版本...", type: .warning)
+    if let url = URL(string: downloadURL) {
+        do {
+            let data = try Data(contentsOf: url)
+            if data.count > 100000 {
+                try data.write(to: URL(fileURLWithPath: kernelPath))
+                let sizeMB = String(format: "%.1f", Double(data.count) / 1048576.0)
+                Logger.log("镜像下载成功 (\(sizeMB) MB)", type: .success)
+                return true
+            } else {
+                Logger.log("镜像返回数据过小（文件不存在）", type: .warning)
             }
+        } catch {
+            Logger.log("镜像下载失败", type: .warning)
         }
     }
     
