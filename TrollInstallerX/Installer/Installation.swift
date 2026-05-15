@@ -138,31 +138,53 @@ func getKernel(_ device: Device) -> Bool {
             }
         }
         
-        // 先尝试从镜像源下载（国内加速）
-        if downloadKernelFromMirror(device) {
-            if fileManager.fileExists(atPath: kernelPath) {
-                progressTimer?.cancel()
-                kernelDownloaded = true
-                return true
-            }
-        }
-        
+        // 先尝试官方源下载（走代理，国内快），超时 60 秒则切换镜像源
         Logger.log("正在下载内核（Apple 官方源）")
-        if grab_kernelcache(kernelPath) {
-            // 确认文件真的存在（可能被卡死检测删掉了）
+        let officialSemaphore = DispatchSemaphore(value: 0)
+        var officialDone = false
+        var officialSuccess = false
+
+        DispatchQueue.global().async {
+            officialSuccess = grab_kernelcache(kernelPath)
+            officialDone = true
+            officialSemaphore.signal()
+        }
+
+        let waitResult = officialSemaphore.wait(timeout: .now() + 60)
+
+        if officialDone && officialSuccess && fileManager.fileExists(atPath: kernelPath) {
+            progressTimer?.cancel()
+            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+               let size = attrs[.size] as? UInt64 {
+                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                Logger.log("内核下载成功 (\(sizeMB) MB)", type: .success)
+            } else {
+                Logger.log("内核下载成功", type: .success)
+            }
+            kernelDownloaded = true
+            return true
+        }
+
+        if !officialDone {
+            Logger.log("官方源下载超时（60秒），切换镜像源...", type: .warning)
+        } else {
+            Logger.log("官方源下载失败，切换镜像源...", type: .warning)
+        }
+        // 清理可能的残留文件
+        try? fileManager.removeItem(atPath: kernelPath)
+
+        // 镜像源作为备用
+        if downloadKernelFromMirror(device) {
             if fileManager.fileExists(atPath: kernelPath) {
                 progressTimer?.cancel()
                 if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
                    let size = attrs[.size] as? UInt64 {
                     let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-                    Logger.log("内核下载成功 ✅ (\(sizeMB) MB)")
-                } else {
-                    Logger.log("内核下载成功 ✅")
+                    Logger.log("镜像下载成功 (\(sizeMB) MB)", type: .success)
                 }
                 kernelDownloaded = true
                 return true
             }
-            // 文件不存在，继续循环重试
         }
     }
 }
