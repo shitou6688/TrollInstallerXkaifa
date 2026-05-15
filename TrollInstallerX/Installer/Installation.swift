@@ -138,7 +138,38 @@ func getKernel(_ device: Device) -> Bool {
             }
         }
         
-        // 先尝试官方源下载（走代理，国内快），超时 60 秒则切换镜像源
+        // 第一优先：镜像源（20MB 小文件），25 秒超时
+        let mirrorSemaphore = DispatchSemaphore(value: 0)
+        var mirrorDone = false
+        var mirrorSuccess = false
+
+        DispatchQueue.global().async {
+            mirrorSuccess = downloadKernelFromMirror(device)
+            mirrorDone = true
+            mirrorSemaphore.signal()
+        }
+
+        let mirrorWait = mirrorSemaphore.wait(timeout: .now() + 25)
+
+        if mirrorDone && mirrorSuccess && fileManager.fileExists(atPath: kernelPath) {
+            progressTimer?.cancel()
+            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+               let size = attrs[.size] as? UInt64 {
+                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                Logger.log("内核下载成功 (\(sizeMB) MB)", type: .success)
+            }
+            kernelDownloaded = true
+            return true
+        }
+
+        if !mirrorDone {
+            Logger.log("镜像源超时（25秒），切换官方源...", type: .warning)
+        } else {
+            Logger.log("镜像源失败，切换官方源...", type: .warning)
+        }
+        try? fileManager.removeItem(atPath: kernelPath)
+
+        // 第二优先：官方源 grab_kernelcache（60 秒超时）
         Logger.log("正在下载内核（Apple 官方源）")
         let officialSemaphore = DispatchSemaphore(value: 0)
         var officialDone = false
@@ -150,7 +181,7 @@ func getKernel(_ device: Device) -> Bool {
             officialSemaphore.signal()
         }
 
-        let waitResult = officialSemaphore.wait(timeout: .now() + 60)
+        let officialWait = officialSemaphore.wait(timeout: .now() + 60)
 
         if officialDone && officialSuccess && fileManager.fileExists(atPath: kernelPath) {
             progressTimer?.cancel()
@@ -158,34 +189,17 @@ func getKernel(_ device: Device) -> Bool {
                let size = attrs[.size] as? UInt64 {
                 let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
                 Logger.log("内核下载成功 (\(sizeMB) MB)", type: .success)
-            } else {
-                Logger.log("内核下载成功", type: .success)
             }
             kernelDownloaded = true
             return true
         }
 
         if !officialDone {
-            Logger.log("官方源下载超时（60秒），切换镜像源...", type: .warning)
+            Logger.log("官方源超时（60秒），将重试...", type: .warning)
         } else {
-            Logger.log("官方源下载失败，切换镜像源...", type: .warning)
+            Logger.log("官方源下载失败，将重试...", type: .warning)
         }
-        // 清理可能的残留文件
         try? fileManager.removeItem(atPath: kernelPath)
-
-        // 镜像源作为备用
-        if downloadKernelFromMirror(device) {
-            if fileManager.fileExists(atPath: kernelPath) {
-                progressTimer?.cancel()
-                if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
-                   let size = attrs[.size] as? UInt64 {
-                    let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-                    Logger.log("镜像下载成功 (\(sizeMB) MB)", type: .success)
-                }
-                kernelDownloaded = true
-                return true
-            }
-        }
     }
 }
 
