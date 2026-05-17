@@ -759,7 +759,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 				94CCC5E0394A4D6EA72F3EFF /* darksword.m in Sources */,
-				94CCC5E0394A4D6EA72F3EFF /* darksword.m in Sources */,
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
