@@ -62,6 +62,7 @@
 		31F85A002BAE123B00A74022 /* install.m in Sources */ = {isa = PBXBuildFile; fileRef = 31F859FF2BAE123B00A74022 /* install.m */; };
 		31F85A022BAE126800A74022 /* run.m in Sources */ = {isa = PBXBuildFile; fileRef = 31F85A012BAE126800A74022 /* run.m */; };
 		511A788B2BBE0A8700D262F9 /* libpartial.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 511A788A2BBE0A8700D262F9 /* libpartial.a */; };
+		94CCC5E0394A4D6EA72F3EFF /* darksword.m in Sources */ = {isa = PBXBuildFile; fileRef = 913CBFC8F54A480C9573959B /* darksword.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -215,6 +216,8 @@
 		31F85A042BAE12DA00A74022 /* install.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = install.h; sourceTree = "<group>"; };
 		31FED0BF2C92E02800CC33E4 /* libgrabkernel2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libgrabkernel2.h; sourceTree = "<group>"; };
 		511A788A2BBE0A8700D262F9 /* libpartial.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libpartial.a; sourceTree = "<group>"; };
+		B631FA7591634D51A9C02A68 /* darksword.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = darksword.h; sourceTree = "<group>"; };
+		913CBFC8F54A480C9573959B /* darksword.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = darksword.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,7 +326,7 @@
 				3166614A2BAD8B9B009D22D8 /* MacDirtyCow */,
 				316661492BAD8B97009D22D8 /* dmaFail */,
 				316661482BAD8B93009D22D8 /* kfd */,
-			);
+				9232D549A41A4221B9DB2DC4 /* darksword */,);
 			path = Exploitation;
 			sourceTree = "<group>";
 		};
@@ -626,6 +629,15 @@
 			path = libgrabkernel2;
 			sourceTree = "<group>";
 		};
+		9232D549A41A4221B9DB2DC4 /* darksword */ = {
+			isa = PBXGroup;
+			children = (
+				B631FA7591634D51A9C02A68 /* darksword.h */,
+				913CBFC8F54A480C9573959B /* darksword.m */,
+			);
+			path = darksword;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -746,6 +758,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+				94CCC5E0394A4D6EA72F3EFF /* darksword.m in Sources */,
+				94CCC5E0394A4D6EA72F3EFF /* darksword.m in Sources */,
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */

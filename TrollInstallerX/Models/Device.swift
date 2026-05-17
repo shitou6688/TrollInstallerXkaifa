@@ -98,6 +98,7 @@ struct Device {
         }
         
         isSupported = (self.version >= Version("14.0") && self.version <= Version("16.6.1"))
+            || (!self.isArm64e && self.version >= Version("15.7.2") && self.version <= Version("15.9.9"))
     }
     
     var modelIdentifier: String {

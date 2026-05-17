@@ -216,10 +216,11 @@ func cleanupPrivatePreboot() -> Bool {
 }
 
 func selectExploit(_ device: Device) -> KernelExploit {
-    let flavour = (TIXDefaults().string(forKey: "exploitFlavour") ?? (physpuppet.supports(device) ? "physpuppet" : "landa"))
+    let flavour = (TIXDefaults().string(forKey: "exploitFlavour") ?? (darksword.supports(device) ? "darksword" : (physpuppet.supports(device) ? "physpuppet" : "landa")))
     if flavour == "landa" { return landa }
     if flavour == "physpuppet" { return physpuppet }
     if flavour == "smith" { return smith }
+    if flavour == "darksword" { return darksword }
     return landa
 }
 

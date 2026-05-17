@@ -34,7 +34,7 @@ struct SettingsView: View {
                 }
             })
             .padding()
-            if smith.supports(device) || physpuppet.supports(device) {
+            if smith.supports(device) || physpuppet.supports(device) || darksword.supports(device) {
                 Picker("Kernel exploit", selection: $exploitFlavour) {
                     Text("landa").foregroundColor(.white).tag("landa")
                     if smith.supports(device) {
@@ -42,6 +42,9 @@ struct SettingsView: View {
                     }
                     if physpuppet.supports(device) {
                         Text("physpuppet").foregroundColor(.white).tag("physpuppet")
+                    }
+                    if darksword.supports(device) {
+                        Text("darksword").foregroundColor(.white).tag("darksword")
                     }
                 }
                 .pickerStyle(.segmented)
@@ -60,7 +63,11 @@ struct SettingsView: View {
         }
         .onAppear {
             if exploitFlavour == "" {
-                exploitFlavour = physpuppet.supports(device) ? "physpuppet" : "landa"
+                if darksword.supports(device) {
+                    exploitFlavour = "darksword"
+                } else {
+                    exploitFlavour = physpuppet.supports(device) ? "physpuppet" : "landa"
+                }
             }
         }
     }

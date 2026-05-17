@@ -13,6 +13,7 @@
 #include "Exploitation/MacDirtyCow/helpers.h"
 #include "Exploitation/dmaFail/dmaFail.h"
 #include "Exploitation/kfd/kfd.h"
+#include "Exploitation/darksword/darksword.h"
 
 #include "External/include/libgrabkernel2/libgrabkernel2.h"
 
