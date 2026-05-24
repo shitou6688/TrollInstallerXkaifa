@@ -7,17 +7,22 @@
 
 import SwiftUI
 
-// ===== 内核镜像下载（从 kernel0.jumo8.top → shitou6688/kernelcache-mirror） =====
+// ===== 内核镜像下载（从 ModelScope） =====
 func downloadKernelFromMirror(_ device: Device) -> Bool {
     let modelID = device.modelIdentifier
     let versionStr = device.version.readableString
     let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
     
-    // 构建 URL 前缀：iPad 加 /ipad/，iPhone 直接根路径
-    let urlPrefix = modelID.hasPrefix("iPad") ? "https://kernel0.jumo8.top/ipad/" : "https://kernel0.jumo8.top/"
+    // 构建下载 URL
+    // iPhone: https://www.modelscope.cn/datasets/qwer1234561476/iPhone/resolve/master/{model}_{version}.kernelcache
+    // iPad:   https://www.modelscope.cn/datasets/shi6688/iPad-1571/resolve/master/{model}_{version}.kernelcache
+    let downloadURL: String
+    if modelID.hasPrefix("iPad") {
+        downloadURL = "https://www.modelscope.cn/datasets/shi6688/iPad-1571/resolve/master/\(fixedModel)_\(versionStr).kernelcache"
+    } else {
+        downloadURL = "https://www.modelscope.cn/datasets/qwer1234561476/iPhone/resolve/master/\(fixedModel)_\(versionStr).kernelcache"
+    }
     
-    // 只使用精确版本号，不回退短版本（内核必须版本匹配，否则会重启）
-    let downloadURL = "\(urlPrefix)\(fixedModel)_\(versionStr).kernelcache"
     Logger.log("正在从镜像源下载: \(fixedModel)_\(versionStr).kernelcache")
     
     if let url = URL(string: downloadURL) {
@@ -29,14 +34,13 @@ func downloadKernelFromMirror(_ device: Device) -> Bool {
                 Logger.log("镜像下载成功 (\(sizeMB) MB)", type: .success)
                 return true
             } else {
-                Logger.log("镜像返回数据过小（文件不存在）", type: .warning)
+                Logger.log("镜像源未找到该内核文件，将尝试 Apple 官方源", type: .warning)
             }
         } catch {
-            Logger.log("镜像下载失败", type: .warning)
+            Logger.log("镜像下载失败，将尝试 Apple 官方源", type: .warning)
         }
     }
     
-    Logger.log("镜像源未找到匹配内核，将尝试 Apple 官方源", type: .warning)
     return false
 }
 
