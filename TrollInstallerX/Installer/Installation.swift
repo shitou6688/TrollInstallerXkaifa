@@ -7,43 +7,6 @@
 
 import SwiftUI
 
-// ===== 内核镜像下载（从 ModelScope） =====
-func downloadKernelFromMirror(_ device: Device) -> Bool {
-    let modelID = device.modelIdentifier
-    let versionStr = device.version.readableString
-    let fixedModel = modelID.replacingOccurrences(of: ",", with: ".")
-    
-    // 构建下载 URL
-    // iPhone: https://www.modelscope.cn/datasets/qwer1234561476/iPhone/resolve/master/{model}_{version}.kernelcache
-    // iPad:   https://www.modelscope.cn/datasets/shi6688/iPad-1571/resolve/master/{model}_{version}.kernelcache
-    let downloadURL: String
-    if modelID.hasPrefix("iPad") {
-        downloadURL = "https://www.modelscope.cn/datasets/shi6688/iPad-1571/resolve/master/\(fixedModel)_\(versionStr).kernelcache"
-    } else {
-        downloadURL = "https://www.modelscope.cn/datasets/qwer1234561476/iPhone/resolve/master/\(fixedModel)_\(versionStr).kernelcache"
-    }
-    
-    Logger.log("正在从镜像源下载: \(fixedModel)_\(versionStr).kernelcache")
-    
-    if let url = URL(string: downloadURL) {
-        do {
-            let data = try Data(contentsOf: url)
-            if data.count > 100000 {
-                try data.write(to: URL(fileURLWithPath: kernelPath))
-                let sizeMB = String(format: "%.1f", Double(data.count) / 1048576.0)
-                Logger.log("镜像下载成功 (\(sizeMB) MB)", type: .success)
-                return true
-            } else {
-                Logger.log("镜像源未找到该内核文件，将尝试 Apple 官方源", type: .warning)
-            }
-        } catch {
-            Logger.log("镜像下载失败，将尝试 Apple 官方源", type: .warning)
-        }
-    }
-    
-    return false
-}
-
 let fileManager = FileManager.default
 let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
 let docsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path
@@ -142,38 +105,7 @@ func getKernel(_ device: Device) -> Bool {
             }
         }
         
-        // 第一优先：镜像源（20MB 小文件），25 秒超时
-        let mirrorSemaphore = DispatchSemaphore(value: 0)
-        var mirrorDone = false
-        var mirrorSuccess = false
-
-        DispatchQueue.global().async {
-            mirrorSuccess = downloadKernelFromMirror(device)
-            mirrorDone = true
-            mirrorSemaphore.signal()
-        }
-
-        let mirrorWait = mirrorSemaphore.wait(timeout: .now() + 25)
-
-        if mirrorDone && mirrorSuccess && fileManager.fileExists(atPath: kernelPath) {
-            progressTimer?.cancel()
-            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
-               let size = attrs[.size] as? UInt64 {
-                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-                Logger.log("内核下载成功 (\(sizeMB) MB)", type: .success)
-            }
-            kernelDownloaded = true
-            return true
-        }
-
-        if !mirrorDone {
-            Logger.log("镜像源超时（25秒），切换官方源...", type: .warning)
-        } else {
-            Logger.log("镜像源失败，切换官方源...", type: .warning)
-        }
-        try? fileManager.removeItem(atPath: kernelPath)
-
-        // 第二优先：官方源 grab_kernelcache（60 秒超时）
+        // 第二优先：官方源 grab_kernelcache（300 秒超时）
         Logger.log("正在下载内核（Apple 官方源）")
         let officialSemaphore = DispatchSemaphore(value: 0)
         var officialDone = false
@@ -185,7 +117,7 @@ func getKernel(_ device: Device) -> Bool {
             officialSemaphore.signal()
         }
 
-        let officialWait = officialSemaphore.wait(timeout: .now() + 60)
+        let officialWait = officialSemaphore.wait(timeout: .now() + 300)
 
         if officialDone && officialSuccess && fileManager.fileExists(atPath: kernelPath) {
             progressTimer?.cancel()
@@ -199,7 +131,7 @@ func getKernel(_ device: Device) -> Bool {
         }
 
         if !officialDone {
-            Logger.log("官方源超时（60秒），将重试...", type: .warning)
+            Logger.log("官方源超时（300秒），将重试...", type: .warning)
         } else {
             Logger.log("官方源下载失败，将重试...", type: .warning)
         }
