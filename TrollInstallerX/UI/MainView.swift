@@ -193,13 +193,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 {
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
-                        UserDefaults.standard.set(true, forKey: "isActivated")
-                        UserDefaults.standard.set(encodedKami, forKey: "last_kami")
-                        registerDevice()
-                        onVerified()
-                    }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
                     else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }
@@ -295,14 +289,14 @@ struct MainView: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .foregroundColor(.white.opacity(0.08))
                                 .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: .infinity)
+                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
                                 .transition(.scale)
                                 .shadow(radius: 10)
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
                                     .padding()
                                     .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: .infinity)
+                                    .frame(maxHeight: geometry.size.height / 1.75)
                             } else {
                                 Button(action: {
                                     if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
@@ -329,7 +323,6 @@ struct MainView: View {
                         }
                         .padding()
                         .disabled(!device.isSupported)
-                        .frame(maxHeight: .infinity)
                     }
                     .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
                 }
@@ -363,8 +356,6 @@ struct MainView: View {
                         Color.black.opacity(0.8).ignoresSafeArea()
                         ActivationView {
                             withAnimation { showActivation = false }
-                            // 激活页关闭后，如果支持 MDC 且未解除沙盒，自动执行并自动开始安装
-                            handlePostActivation()
                         }
                     }
                 }
@@ -388,27 +379,23 @@ struct MainView: View {
                     UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
                 }
             }
+            .onChange(of: isShowingOTAAlert) { new in
+                if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
+            }
             .onAppear {
                 if UserDefaults.standard.bool(forKey: "isActivated") { registerDevice() }
                 if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
+                if device.isSupported {
+                    withAnimation {
+                        isShowingOTAAlert = device.supportsOTA
+                        if !isShowingOTAAlert { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) }
+                    }
+                }
                 Task { await getUpdatedTrollStore() }
             }
-        }
-    }
-
-    /// 激活页关闭后处理：MDC 设备自动解除沙盒（用户手动点安装）
-    func handlePostActivation() {
-        guard device.isSupported else { return }
-        let needsMDC = MacDirtyCow.supports(device) && !checkForMDCUnsandbox()
-        if needsMDC {
-            Logger.log("正在自动解除沙盒（MDC）...")
-            grant_full_disk_access({ error in
-                if let error = error {
-                    Logger.log("自动解除沙盒失败: \(error)", type: .error)
-                } else {
-                    Logger.log("自动解除沙盒成功，请点击安装 TrollStore", type: .success)
-                }
-            })
+            .onChange(of: isShowingOTAAlert) { new in
+                if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
+            }
         }
     }
 }
