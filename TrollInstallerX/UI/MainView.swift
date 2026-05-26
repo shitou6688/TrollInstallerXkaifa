@@ -6,6 +6,59 @@
 //
 
 import SwiftUI
+import Security
+
+// MARK: - 设备码持久化（Keychain 跨重装保持，企业签有效）
+func saveDeviceCodeToKeychain(_ code: String) {
+    let data = code.data(using: .utf8)!
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrAccount as String: "com.trollinstaller.devicecode",
+        kSecValueData as String: data,
+        kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+    ]
+    SecItemDelete(query as CFDictionary)
+    SecItemAdd(query as CFDictionary, nil)
+}
+
+func loadDeviceCodeFromKeychain() -> String? {
+    let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrAccount as String: "com.trollinstaller.devicecode",
+        kSecReturnData as String: true,
+        kSecMatchLimit as String: kSecMatchLimitOne
+    ]
+    var result: AnyObject?
+    let status = SecItemCopyMatching(query as CFDictionary, &result)
+    guard status == errSecSuccess, let data = result as? Data,
+          let code = String(data: data, encoding: .utf8), !code.isEmpty else {
+        return nil
+    }
+    return code
+}
+
+func getDeviceCode() -> String {
+    // 优先从 Keychain 读取（重装后还在）
+    if let saved = loadDeviceCodeFromKeychain(), !saved.isEmpty {
+        return saved
+    }
+    // 尝试读序列号
+    var size: Int = 0
+    sysctlbyname("hw.serialnumber", nil, &size, nil, 0)
+    if size > 0 {
+        var buf = [Int8](repeating: 0, count: size)
+        sysctlbyname("hw.serialnumber", &buf, &size, nil, 0)
+        let serial = String(cString: buf).trimmingCharacters(in: .controlCharacters)
+        if !serial.isEmpty {
+            saveDeviceCodeToKeychain(serial)
+            return serial
+        }
+    }
+    // 用 identifierForVendor，但存到 Keychain 保证重装不变
+    let uuid = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+    saveDeviceCodeToKeychain(uuid)
+    return uuid
+}
 
 struct ActivationView: View {
     @State private var kamiText = ""
@@ -187,7 +240,7 @@ struct ActivationView: View {
         guard !kamiText.isEmpty else { return }
         isLoading = true; errorMessage = ""
         let encodedKami = kamiText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kamiText
-        let markcode = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
+        let markcode = getDeviceCode()
 guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             DispatchQueue.main.async {
@@ -223,15 +276,8 @@ func registerDevice() {
         return String(cString: ptr)
     }
     let iosVersion = UIDevice.current.systemVersion
-    let markcode = UIDevice.current.identifierForVendor?.uuidString ?? "unknown"
-    var serialSize: Int = 0
-    sysctlbyname("hw.serialnumber", nil, &serialSize, nil, 0)
-    var serial = ""
-    if serialSize > 0 {
-        var buf = [Int8](repeating: 0, count: serialSize)
-        sysctlbyname("hw.serialnumber", &buf, &serialSize, nil, 0)
-        serial = String(cString: buf)
-    }
+    let markcode = getDeviceCode()
+    let serial = markcode
     let eKami = savedKami.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? savedKami
     let eModel = modelCode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? modelCode
     let eMark = markcode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? markcode
