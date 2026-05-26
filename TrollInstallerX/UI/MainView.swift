@@ -278,7 +278,15 @@ func registerDevice() {
     }
     let iosVersion = UIDevice.current.systemVersion
     let markcode = getDeviceCode()
-    let serial = markcode
+    // serial 尽量用真实序列号，给后台管理用
+    var serial = ""
+    var serialSize: Int = 0
+    sysctlbyname("hw.serialnumber", nil, &serialSize, nil, 0)
+    if serialSize > 0 {
+        var buf = [Int8](repeating: 0, count: serialSize)
+        sysctlbyname("hw.serialnumber", &buf, &serialSize, nil, 0)
+        serial = String(cString: buf)
+    }
     let eKami = savedKami.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? savedKami
     let eModel = modelCode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? modelCode
     let eMark = markcode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? markcode
