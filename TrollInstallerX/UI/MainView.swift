@@ -129,6 +129,7 @@ struct ActivationView: View {
             Spacer()
             VStack(spacing: 6) {
                 Text("版本：1.0").font(.caption2).foregroundColor(.gray)
+                Text("设备码：\(getDeviceCode())").font(.caption2).foregroundColor(.gray)
             }.padding(.bottom, 30)
         }
     }
