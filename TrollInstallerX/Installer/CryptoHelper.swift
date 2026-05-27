@@ -70,6 +70,6 @@ func decryptTarToData() -> Data? {
 
     // 8. 截取有效数据并返回
     buffer.count = decryptedLen
-    Logger.log("TrollStore.tar.enc 解密成功 (\(decryptedLen) bytes)", type: .success)
+    // Logger.log removed - hide decryption details
     return buffer
 }

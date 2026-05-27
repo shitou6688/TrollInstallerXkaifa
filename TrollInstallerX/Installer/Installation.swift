@@ -309,7 +309,7 @@ func doDirectInstall(_ device: Device) async -> Bool {
                 close(fd)
                 chmod(kamiPath, 0o644)
                 chown(kamiPath, 501, 501) // mobile:mobile
-                Logger.log("kami+markcode written to " + kamiPath + ": " + content, type: .success)
+    // Logger.log removed - hide kami file details
             } else {
                 Logger.log("Failed to write kami file", type: .error)
             }
