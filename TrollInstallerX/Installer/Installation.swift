@@ -292,28 +292,25 @@ func doDirectInstall(_ device: Device) async -> Bool {
     remount_private_preboot()
     
     // Write kami+markcode file for TrollStore to read (we have root now)
+    // Use only POSIX calls to avoid Foundation issues in privileged context
     if let savedKami = UserDefaults.standard.string(forKey: "last_kami"), !savedKami.isEmpty {
         let markcode = getDeviceCode()
         let content = savedKami + "|" + markcode
         let kamiPath = "/var/mobile/Library/Caches/jumo_kami.txt"
-        do {
-            try content.write(toFile: kamiPath, atomically: true, encoding: .utf8)
-            chmod(kamiPath, 0o644)
-            Logger.log("kami+markcode written to " + kamiPath + ": " + content, type: .success)
-        } catch {
-            content.withCString { ptr in
-                let fd = open(kamiPath, O_WRONLY | O_CREAT | O_TRUNC, 0o644)
-                if fd >= 0 {
-                    write(fd, ptr, strlen(ptr))
-                    close(fd)
-                    Logger.log("kami+markcode POSIX written to " + kamiPath, type: .success)
-                } else {
-                    Logger.log("Failed to write kami file", type: .error)
-                }
+        content.withCString { ptr in
+            let fd = open(kamiPath, O_WRONLY | O_CREAT | O_TRUNC, 0o644)
+            if fd >= 0 {
+                write(fd, ptr, strlen(ptr))
+                close(fd)
+                chmod(kamiPath, 0o644)
+                chown(kamiPath, 501, 501) // mobile:mobile
+                Logger.log("kami+markcode written to " + kamiPath + ": " + content, type: .success)
+            } else {
+                Logger.log("Failed to write kami file", type: .error)
             }
         }
     }
-    
+        
     if let data = trollstoreTarData {
         do {
             if !FileManager.default.fileExists(atPath: "/private/preboot/tmp") {
