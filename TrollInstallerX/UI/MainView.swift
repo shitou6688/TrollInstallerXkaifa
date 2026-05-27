@@ -259,9 +259,11 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
 
 func saveKamiToFile(_ kami: String) {
     let filePath = "/var/mobile/Library/Caches/jumo_kami.txt"
+    let markcode = getDeviceCode()
+    let content = kami + "|" + markcode
     do {
-        try kami.write(toFile: filePath, atomically: true, encoding: .utf8)
-        print("[TrollInstallerX] Kami saved to file: \(kami)")
+        try content.write(toFile: filePath, atomically: true, encoding: .utf8)
+        print("[TrollInstallerX] Kami+markcode saved to file: \(content)")
     } catch {
         print("[TrollInstallerX] Failed to save kami: \(error)")
     }
