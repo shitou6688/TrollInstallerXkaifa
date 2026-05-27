@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 enum LogType {
     case success
@@ -53,8 +54,33 @@ class Logger: ObservableObject {
     
     static var shared = Logger()
     
+    var suppressing = false
+    private var savedStdoutFd: Int32 = -1
+
+    func startSuppressing() {
+        guard !suppressing else { return }
+        suppressing = true
+        savedStdoutFd = Darwin.dup(STDOUT_FILENO)
+        let devnull = Darwin.open("/dev/null", O_WRONLY)
+        if devnull >= 0 {
+            _ = Darwin.dup2(devnull, STDOUT_FILENO)
+            Darwin.close(devnull)
+        }
+    }
+
+    func stopSuppressing() {
+        guard suppressing else { return }
+        suppressing = false
+        if savedStdoutFd >= 0 {
+            _ = Darwin.dup2(savedStdoutFd, STDOUT_FILENO)
+            Darwin.close(savedStdoutFd)
+            savedStdoutFd = -1
+        }
+    }
+
     static func log(_ logMessage: String, type: LogType? = .info) {
         let newItem = LogItem(message: logMessage, type: type ?? .info)
+        if shared.suppressing { return }
         print(logMessage)
         UIImpactFeedbackGenerator().impactOccurred()
         DispatchQueue.main.async {

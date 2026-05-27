@@ -18,7 +18,8 @@ func checkForMDCUnsandbox() -> Bool {
 }
 
 func getKernel(_ device: Device) -> Bool {
-    Logger.log("正在下载内核(不要切屏)请稍后...")
+    Logger.log("正在下载内核，请稍后......")
+    Logger.shared.startSuppressing()
     
     // 保持屏幕常亮，防止息屏断网
     DispatchQueue.main.async {
@@ -70,6 +71,7 @@ func getKernel(_ device: Device) -> Bool {
     
     while true {
         if fileManager.fileExists(atPath: kernelPath) {
+            Logger.shared.stopSuppressing()
             Logger.log("内核缓存已存在")
             kernelDownloaded = true
             return true
@@ -79,6 +81,7 @@ func getKernel(_ device: Device) -> Bool {
             do {
                 try fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
                 if fileManager.fileExists(atPath: kernelPath) {
+                    Logger.shared.stopSuppressing()
                     Logger.log("已使用捆绑的内核缓存文件")
                     kernelDownloaded = true
                     return true
@@ -96,6 +99,7 @@ func getKernel(_ device: Device) -> Bool {
                 let path = get_kernelcache_path()
                 do {
                     try fileManager.copyItem(atPath: path!, toPath: kernelPath)
+                    Logger.shared.stopSuppressing()
                     Logger.log("使用MacDirtyCow获取内核缓存成功")
                     kernelDownloaded = true
                     return true
@@ -121,6 +125,7 @@ func getKernel(_ device: Device) -> Bool {
 
         if officialDone && officialSuccess && fileManager.fileExists(atPath: kernelPath) {
             progressTimer?.cancel()
+            Logger.shared.stopSuppressing()
             if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
                let size = attrs[.size] as? UInt64 {
                 let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
