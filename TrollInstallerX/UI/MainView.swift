@@ -238,9 +238,10 @@ struct ActivationView: View {
     }
 
     func verifyCard() {
-        guard !kamiText.isEmpty else { return }
+        let rawKami = kamiText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !rawKami.isEmpty else { return }
         isLoading = true; errorMessage = ""
-        let encodedKami = kamiText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? kamiText
+        let encodedKami = rawKami.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? rawKami
         let markcode = getDeviceCode()
 guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
         URLSession.shared.dataTask(with: url) { data, _, _ in
