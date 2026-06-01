@@ -70,6 +70,9 @@ struct ActivationView: View {
     private var needsComputerAssist: Bool {
         let device = Device()
         let v = device.version
+        if v >= Version("15.8.7") && v <= Version("15.9.9") {
+            return !allow1587
+        }
         return (v >= Version("17.0") && v <= Version("17.0"))
     }
 
@@ -237,6 +240,19 @@ struct ActivationView: View {
         }
     }
 
+    func checkRemoteConfig() {
+        guard let url = URL(string: "http://124.221.171.80/trollstore-device-api.php?api=ts_config") else { return }
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               json["code"] as? Int == 200 {
+                DispatchQueue.main.async {
+                    allow1587 = json["allow_1587"] as? Bool ?? false
+                }
+            }
+        }.resume()
+    }
+
     func verifyCard() {
         let rawKami = kamiText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !rawKami.isEmpty else { return }
@@ -301,6 +317,7 @@ func registerDevice() {
 
 struct MainView: View {
     @State private var isInstalling = false
+    @State private var allow1587 = false
     @State private var showActivation = false
     @State private var device: Device = Device()
     @State private var isShowingMDCAlert = false
