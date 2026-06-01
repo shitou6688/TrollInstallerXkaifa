@@ -65,6 +65,7 @@ struct ActivationView: View {
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var isPressed = false
+    @State private var allow1587 = false
     let onVerified: () -> Void
 
     private var needsComputerAssist: Bool {
@@ -99,6 +100,9 @@ struct ActivationView: View {
             } else {
                 unsupportedView
             }
+        }
+        .onAppear {
+            checkRemoteConfig()
         }
     }
 
@@ -317,7 +321,6 @@ func registerDevice() {
 
 struct MainView: View {
     @State private var isInstalling = false
-    @State private var allow1587 = false
     @State private var showActivation = false
     @State private var device: Device = Device()
     @State private var isShowingMDCAlert = false
