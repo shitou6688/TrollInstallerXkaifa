@@ -36,6 +36,13 @@ func getKernel(_ device: Device) -> Bool {
     let semaphore = DispatchSemaphore(value: 0)
     var kernelDownloaded = false
     
+    // 20秒后如果还没下载成功，显示提示
+    DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+        if !kernelDownloaded {
+            NotificationCenter.default.post(name: NSNotification.Name("ShowDownloadHint"), object: nil)
+        }
+    }
+
     // 每1.5秒监控下载进度 + 检测卡死
     var lastReportedSize: UInt64 = 0
     var lastSizeChangeTime = Date()

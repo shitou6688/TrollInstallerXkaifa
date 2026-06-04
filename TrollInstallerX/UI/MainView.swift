@@ -321,6 +321,7 @@ func registerDevice() {
 
 struct MainView: View {
     @State private var isInstalling = false
+    @State private var showDownloadHint = false
     @State private var showActivation = false
     @State private var device: Device = Device()
     @State private var isShowingMDCAlert = false
@@ -355,22 +356,26 @@ struct MainView: View {
                                 .foregroundColor(.white.opacity(0.45))
                         }
                         .padding(.vertical)
-                        if isInstalling {
+                        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowDownloadHint"))) { _ in
+                            withAnimation { showDownloadHint = true }
+                        }
+                        if isInstalling && showDownloadHint {
                             HStack(spacing: 6) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .font(.system(size: 12))
-                                    .foregroundColor(.yellow)
+                                    .foregroundColor(.orange)
                                 Text("如长时间无响应，请关机重启设备后再来安装")
                                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                                    .foregroundColor(.yellow.opacity(0.9))
+                                    .foregroundColor(.orange.opacity(0.9))
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.yellow.opacity(0.12))
+                                    .fill(Color.orange.opacity(0.12))
                             )
                             .frame(maxWidth: geometry.size.width / 1.2)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                         if !isInstalling {
                             MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
@@ -396,7 +401,7 @@ struct MainView: View {
                                 Button(action: {
                                     if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
                                         UIImpactFeedbackGenerator().impactOccurred()
-                                        withAnimation { isInstalling.toggle() }
+                                        showDownloadHint = false; withAnimation { isInstalling.toggle() }
                                     }
                                 }, label: {
                                     Text(device.isSupported ? "安装 TrollStore" : "不支持")
