@@ -138,7 +138,7 @@ func getKernel(_ device: Device) -> Bool {
         }
 
         if !officialDone {
-            Logger.log("官方源超时（300秒），将重试...", type: .warning)
+            Logger.log("下载超时，请关机重启设备后再来点击安装！", type: .error)
         } else {
             Logger.log("官方源下载失败，将重试...", type: .warning)
         }

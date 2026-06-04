@@ -371,6 +371,21 @@ struct MainView: View {
                                 .transition(.scale)
                                 .shadow(radius: 10)
                             if isInstalling {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 13))
+                                        .foregroundColor(.yellow)
+                                    Text("如长时间无响应，请关机重启设备后再来安装")
+                                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                                        .foregroundColor(.yellow.opacity(0.9))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.yellow.opacity(0.12))
+                                )
+                                .frame(maxWidth: geometry.size.width / 1.2)
                                 LogView(installationFinished: $installationFinished)
                                     .padding()
                                     .frame(maxWidth: geometry.size.width / 1.2)
