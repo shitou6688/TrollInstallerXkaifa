@@ -4,7 +4,7 @@ struct UnsandboxView: View {
     @Binding var isShowingMDCAlert: Bool
     var body: some View {
         VStack(spacing: 20) {
-            Text("请点击解除沙盒")
+            Text("请点击安装巨魔")
                 .font(.system(size: 23, weight: .semibold, design: .rounded))
                 .foregroundColor(.white)
             Button(action: {
@@ -23,7 +23,7 @@ struct UnsandboxView: View {
                         .frame(width: 175, height: 45)
                         .foregroundColor(.white.opacity(0.2))
                         .shadow(radius: 10)
-                    Text("解除沙盒")
+                    Text("安装巨魔")
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
                         .padding()
