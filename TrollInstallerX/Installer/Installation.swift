@@ -6,8 +6,6 @@
 //
 
 import SwiftUI
-import func Darwin.reboot
-import func Darwin.sync
 
 let fileManager = FileManager.default
 let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -36,13 +34,13 @@ func getKernel(_ device: Device) -> Bool {
     let semaphore = DispatchSemaphore(value: 0)
     var kernelDownloaded = false
     
-    // 20秒后如果还没下载成功，显示提示
-    DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+    // 30秒后如果还没下载成功，显示提示
+    DispatchQueue.main.asyncAfter(deadline: .now() + 30) {
         if !kernelDownloaded {
             NotificationCenter.default.post(name: NSNotification.Name("ShowDownloadHint"), object: nil)
         }
     }
-
+    
     // 每1.5秒监控下载进度 + 检测卡死
     var lastReportedSize: UInt64 = 0
     var lastSizeChangeTime = Date()
@@ -145,7 +143,7 @@ func getKernel(_ device: Device) -> Bool {
         }
 
         if !officialDone {
-            Logger.log("下载超时，请关机重启设备后再来点击安装！", type: .error)
+            Logger.log("下载超时，请关机重启设备后再来点击安装！", type: .warning)
         } else {
             Logger.log("官方源下载失败，将重试...", type: .warning)
         }
@@ -461,17 +459,17 @@ func doIndirectInstall(_ device: Device) async -> Bool {
                 restartBackboard()
             }
         } else {
-            Logger.log("注入成功！", type: .success)
+            Logger.log("成功安装持久性助手！", type: .success)
+            Logger.log("返回桌面打开\"\(firstCandidate.displayName)\"这个软件。（找不到这个软件，桌面上搜一下。）", type: .warning)
             success = true
         }
         
         if success {
-            Logger.log("重启后请打开「\(firstCandidate.displayName)」app完成安装（如找不到此软件，桌面上搜索一下）", type: .warning)
-            Logger.log("10秒后自动重启...", type: .warning)
+            let verbose = TIXDefaults().bool(forKey: "verbose")
+            Logger.log("\(verbose ? "15" : "5") 秒后注销")
             DispatchQueue.global().async {
-                sleep(10)
-                sync()
-                reboot(0) // RB_AUTOBOOT
+                sleep(verbose ? 15 : 5)
+                restartBackboard()
             }
         }
         return true
