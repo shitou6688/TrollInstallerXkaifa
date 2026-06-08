@@ -44,7 +44,7 @@ class KernelPreloader {
         
         DispatchQueue.global(qos: .utility).async { [self] in
             NSLog("[KernelPreloader] 开始后台预加载...")
-            let success = grab_kernelcache(kernelPreloadPath as NSString)
+            let success = grab_kernelcache(kernelPreloadPath)
             
             lock.lock()
             isPreloading = false
