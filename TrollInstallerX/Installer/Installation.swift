@@ -160,25 +160,25 @@ func getKernel(_ device: Device) -> Bool {
         if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
            let size = attrs[.size] as? UInt64 {
             let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-            Logger.log("内核已预加载完成 (\(sizeMB) MB)", type: .success)
+            Logger.log("下载内核完成 (\(sizeMB) MB)", type: .success)
         }
         return true
     }
     
     if preloadStatus.isPreloading {
         // 预加载还在进行中，等待它完成
-        Logger.log("预加载进行中，等待完成...")
+        Logger.log("正在下载内核，请稍后......")
         if preloader.waitForPreload(timeout: 120) && fileManager.fileExists(atPath: kernelPath) {
             if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
                let size = attrs[.size] as? UInt64 {
                 let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
-                Logger.log("预加载完成 (\(sizeMB) MB)", type: .success)
+                Logger.log("下载内核完成 (\(sizeMB) MB)", type: .success)
             }
             return true
         }
         // 预加载失败或超时，取消并走正式流程
         preloader.cancelPreload()
-        Logger.log("预加载未完成，开始正式下载")
+        Logger.log("正在下载内核，请稍后......")
     } else if preloadStatus.isComplete && !preloadStatus.isSuccess {
         // 预加载已完成但失败，走正式流程
         Logger.log("正在下载内核，请稍后......")
