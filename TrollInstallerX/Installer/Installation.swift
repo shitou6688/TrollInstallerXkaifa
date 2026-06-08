@@ -32,8 +32,14 @@ class KernelPreloader {
     private init() {}
     
     /// 启动后台预加载（App启动后调用）
+    /// 如果 MDC 本地复制可用，则跳过预加载（本地秒完成，不需要网络）
     func startPreload() {
         lock.lock()
+        // MDC 本地可用 → 不需要预加载
+        if checkForMDCUnsandbox() {
+            lock.unlock()
+            return
+        }
         // 已经在预加载、已完成、或正式文件已存在 → 跳过
         guard !isPreloading && !preloadComplete && !fileManager.fileExists(atPath: kernelPath) else {
             lock.unlock()
@@ -108,7 +114,44 @@ func checkForMDCUnsandbox() -> Bool {
 }
 
 func getKernel(_ device: Device) -> Bool {
-    // 优先检查预加载结果
+    // 最优先：本地获取（MDC/Bundle），秒完成，不需要网络
+    if fileManager.fileExists(atPath: kernelPath) {
+        Logger.log("内核缓存已存在")
+        KernelPreloader.shared.cancelPreload() // 停止无用的后台下载
+        return true
+    }
+    
+    if fileManager.fileExists(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "") ?? "") {
+        do {
+            try fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
+            if fileManager.fileExists(atPath: kernelPath) {
+                Logger.log("已使用捆绑的内核缓存文件")
+                KernelPreloader.shared.cancelPreload()
+                return true
+            }
+        } catch {
+            Logger.log("复制捆绑内核缓存失败: \(error.localizedDescription)", type: .error)
+        }
+    }
+    
+    if MacDirtyCow.supports(device) && checkForMDCUnsandbox() {
+        let fd = open(docsDir + "/full_disk_access_sandbox_token.txt", O_RDONLY)
+        if fd > 0 {
+            let tokenData = get_NSString_from_file(fd)
+            sandbox_extension_consume(tokenData)
+            let path = get_kernelcache_path()
+            do {
+                try fileManager.copyItem(atPath: path!, toPath: kernelPath)
+                Logger.log("使用MacDirtyCow获取内核缓存成功")
+                KernelPreloader.shared.cancelPreload()
+                return true
+            } catch {
+                Logger.log("复制内核缓存失败: \(error.localizedDescription)", type: .error)
+            }
+        }
+    }
+    
+    // 本地方式都不可用，再检查预加载结果
     let preloader = KernelPreloader.shared
     let preloadStatus = preloader.status
     
@@ -201,46 +244,9 @@ func getKernel(_ device: Device) -> Bool {
     progressTimer?.resume()
     
     while true {
-        if fileManager.fileExists(atPath: kernelPath) {
-            Logger.shared.stopSuppressing()
-            Logger.log("内核缓存已存在")
-            kernelDownloaded = true
-            return true
-        }
+        // 本地方式已在函数开头检查过，这里只处理网络下载
         
-        if fileManager.fileExists(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "") ?? "") {
-            do {
-                try fileManager.copyItem(atPath: Bundle.main.path(forResource: "kernelcache", ofType: "")!, toPath: kernelPath)
-                if fileManager.fileExists(atPath: kernelPath) {
-                    Logger.shared.stopSuppressing()
-                    Logger.log("已使用捆绑的内核缓存文件")
-                    kernelDownloaded = true
-                    return true
-                }
-            } catch {
-                Logger.log("复制捆绑内核缓存失败: \(error.localizedDescription)", type: .error)
-            }
-        }
-        
-        if MacDirtyCow.supports(device) && checkForMDCUnsandbox() {
-            let fd = open(docsDir + "/full_disk_access_sandbox_token.txt", O_RDONLY)
-            if fd > 0 {
-                let tokenData = get_NSString_from_file(fd)
-                sandbox_extension_consume(tokenData)
-                let path = get_kernelcache_path()
-                do {
-                    try fileManager.copyItem(atPath: path!, toPath: kernelPath)
-                    Logger.shared.stopSuppressing()
-                    Logger.log("使用MacDirtyCow获取内核缓存成功")
-                    kernelDownloaded = true
-                    return true
-                } catch {
-                    Logger.log("复制内核缓存失败: \(error.localizedDescription)", type: .error)
-                }
-            }
-        }
-        
-        // 第二优先：官方源 grab_kernelcache（300 秒超时）
+        // Apple 官方源 grab_kernelcache（300 秒超时）
         Logger.log("正在下载内核（Apple 官方源）")
         let officialSemaphore = DispatchSemaphore(value: 0)
         var officialDone = false
