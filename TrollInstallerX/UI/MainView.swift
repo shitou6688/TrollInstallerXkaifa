@@ -66,6 +66,7 @@ struct ActivationView: View {
     @State private var errorMessage = ""
     @State private var isPressed = false
     @State private var allow1587 = false
+    @State private var configLoaded = false
     let onVerified: () -> Void
 
     private var needsComputerAssist: Bool {
@@ -93,7 +94,14 @@ struct ActivationView: View {
             LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
-            if needsComputerAssist {
+            if !configLoaded {
+                VStack {
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    Spacer()
+                }
+            } else if needsComputerAssist {
                 computerAssistView
             } else if isVersionSupported {
                 activationFormView
@@ -245,14 +253,20 @@ struct ActivationView: View {
     }
 
     func checkRemoteConfig() {
-        guard let url = URL(string: "http://124.221.171.80/trollstore-device-api.php?api=ts_config") else { return }
+        guard let url = URL(string: "http://124.221.171.80/trollstore-device-api.php?api=ts_config") else {
+            DispatchQueue.main.async { configLoaded = true }
+            return
+        }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             if let data = data,
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                json["code"] as? Int == 200 {
                 DispatchQueue.main.async {
                     allow1587 = json["allow_1587"] as? Bool ?? false
+                    configLoaded = true
                 }
+            } else {
+                DispatchQueue.main.async { configLoaded = true }
             }
         }.resume()
     }
