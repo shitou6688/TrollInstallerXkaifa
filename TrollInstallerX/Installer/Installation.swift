@@ -11,14 +11,138 @@ let fileManager = FileManager.default
 let docsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
 let docsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].path
 let kernelPath = docsDir + "/kernelcache"
+let kernelPreloadPath = docsDir + "/kernelcache.preload"
 
+// MARK: - KernelPreloader 后台预加载
+class KernelPreloader {
+    static let shared = KernelPreloader()
+    
+    private var isPreloading = false
+    private var preloadComplete = false
+    private var preloadSuccess = false
+    private let lock = NSLock()
+    
+    /// 当前预加载状态
+    var status: (isPreloading: Bool, isComplete: Bool, isSuccess: Bool) {
+        lock.lock()
+        defer { lock.unlock() }
+        return (isPreloading, preloadComplete, preloadSuccess)
+    }
+    
+    private init() {}
+    
+    /// 启动后台预加载（App启动后调用）
+    func startPreload() {
+        lock.lock()
+        // 已经在预加载、已完成、或正式文件已存在 → 跳过
+        guard !isPreloading && !preloadComplete && !fileManager.fileExists(atPath: kernelPath) else {
+            lock.unlock()
+            return
+        }
+        isPreloading = true
+        lock.unlock()
+        
+        DispatchQueue.global(qos: .utility).async { [self] in
+            NSLog("[KernelPreloader] 开始后台预加载...")
+            let success = grab_kernelcache(kernelPreloadPath as NSString)
+            
+            lock.lock()
+            isPreloading = false
+            preloadComplete = true
+            preloadSuccess = success
+            lock.unlock()
+            
+            if success && fileManager.fileExists(atPath: kernelPreloadPath) {
+                // 原子移动到正式路径
+                try? fileManager.removeItem(atPath: kernelPath)
+                do {
+                    try fileManager.moveItem(atPath: kernelPreloadPath, toPath: kernelPath)
+                    if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+                       let size = attrs[.size] as? UInt64 {
+                        let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                        NSLog("[KernelPreloader] 预加载完成 (%@ MB)", sizeMB)
+                    }
+                } catch {
+                    NSLog("[KernelPreloader] 移动预加载文件失败: %@", error.localizedDescription)
+                    try? fileManager.removeItem(atPath: kernelPreloadPath)
+                }
+            } else {
+                NSLog("[KernelPreloader] 预加载失败")
+                try? fileManager.removeItem(atPath: kernelPreloadPath)
+            }
+        }
+    }
+    
+    /// 等待预加载完成（用户点安装时调用）
+    /// - Returns: true = 预加载成功，kernelPath已就绪；false = 预加载失败或超时
+    func waitForPreload(timeout: TimeInterval = 120) -> Bool {
+        let start = Date()
+        while Date().timeIntervalSince(start) < timeout {
+            lock.lock()
+            let done = preloadComplete || !isPreloading
+            let success = preloadSuccess
+            lock.unlock()
+            
+            if done {
+                return success && fileManager.fileExists(atPath: kernelPath)
+            }
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+        return fileManager.fileExists(atPath: kernelPath)
+    }
+    
+    /// 取消预加载（用户点安装时，预加载还在进行则取消，让正式流程接管）
+    func cancelPreload() {
+        lock.lock()
+        isPreloading = false
+        preloadComplete = true
+        preloadSuccess = false
+        lock.unlock()
+        // 清理预加载临时文件
+        try? fileManager.removeItem(atPath: kernelPreloadPath)
+    }
+}
 
 func checkForMDCUnsandbox() -> Bool {
     return fileManager.fileExists(atPath: docsDir + "/full_disk_access_sandbox_token.txt")
 }
 
 func getKernel(_ device: Device) -> Bool {
-    Logger.log("正在下载内核，请稍后......")
+    // 优先检查预加载结果
+    let preloader = KernelPreloader.shared
+    let preloadStatus = preloader.status
+    
+    if preloadStatus.isComplete && preloadStatus.isSuccess && fileManager.fileExists(atPath: kernelPath) {
+        // 预加载已完成，直接用
+        if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+           let size = attrs[.size] as? UInt64 {
+            let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+            Logger.log("内核已预加载完成 (\(sizeMB) MB)", type: .success)
+        }
+        return true
+    }
+    
+    if preloadStatus.isPreloading {
+        // 预加载还在进行中，等待它完成
+        Logger.log("预加载进行中，等待完成...")
+        if preloader.waitForPreload(timeout: 120) && fileManager.fileExists(atPath: kernelPath) {
+            if let attrs = try? fileManager.attributesOfItem(atPath: kernelPath),
+               let size = attrs[.size] as? UInt64 {
+                let sizeMB = String(format: "%.1f", Double(size) / 1048576.0)
+                Logger.log("预加载完成 (\(sizeMB) MB)", type: .success)
+            }
+            return true
+        }
+        // 预加载失败或超时，取消并走正式流程
+        preloader.cancelPreload()
+        Logger.log("预加载未完成，开始正式下载")
+    } else if preloadStatus.isComplete && !preloadStatus.isSuccess {
+        // 预加载已完成但失败，走正式流程
+        Logger.log("正在下载内核，请稍后......")
+    } else {
+        Logger.log("正在下载内核，请稍后......")
+    }
+    
     Logger.shared.startSuppressing()
     
     // 保持屏幕常亮，防止息屏断网

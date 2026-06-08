@@ -282,7 +282,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); KernelPreloader.shared.startPreload(); onVerified() }
                     else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }
@@ -497,7 +497,7 @@ struct MainView: View {
                 if !new { withAnimation { isShowingMDCAlert = !checkForMDCUnsandbox() && MacDirtyCow.supports(device) } }
             }
             .onAppear {
-                if UserDefaults.standard.bool(forKey: "isActivated") { registerDevice() }
+                if UserDefaults.standard.bool(forKey: "isActivated") { registerDevice(); KernelPreloader.shared.startPreload() }
                 if !UserDefaults.standard.bool(forKey: "isActivated") { showActivation = true }
                 if device.isSupported {
                     withAnimation {
