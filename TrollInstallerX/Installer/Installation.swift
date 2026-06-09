@@ -72,9 +72,6 @@ class KernelPreloader {
     /// 实际执行预加载（含重试）
     private func doPreload() {
         DispatchQueue.global(qos: .userInitiated).async { [self] in
-            // 给 iOS 一点时间让网络完全就绪
-            Thread.sleep(forTimeInterval: 1.0)
-            
             NSLog("[KernelPreloader] 开始下载 (尝试 %d/%d)", retryCount + 1, maxRetries)
             let success = grab_kernelcache(kernelPreloadPath)
             
