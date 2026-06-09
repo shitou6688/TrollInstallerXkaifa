@@ -258,6 +258,8 @@ struct ActivationView: View {
             return
         }
         URLSession.shared.dataTask(with: url) { data, _, _ in
+            // 网络请求成功回调 = 网络权限已授予，立即启动内核预加载
+            KernelPreloader.shared.startPreload()
             if let data = data,
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                json["code"] as? Int == 200 {
@@ -282,7 +284,7 @@ guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002
             DispatchQueue.main.async {
                 isLoading = false
                 if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); KernelPreloader.shared.startPreload(); onVerified() }
+                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
                     else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
                 } else { errorMessage = "网络请求失败" }
             }

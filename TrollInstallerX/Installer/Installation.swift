@@ -21,6 +21,8 @@ class KernelPreloader {
     private var preloadComplete = false
     private var preloadSuccess = false
     private let lock = NSLock()
+    private var retryCount = 0
+    private let maxRetries = 3
     
     /// 当前预加载状态
     var status: (isPreloading: Bool, isComplete: Bool, isSuccess: Bool) {
@@ -31,35 +33,59 @@ class KernelPreloader {
     
     private init() {}
     
-    /// 启动后台预加载（App启动后调用）
-    /// 如果 MDC 本地复制可用，则跳过预加载（本地秒完成，不需要网络）
+    /// 启动后台预加载
+    /// 多次调用安全（自动去重）
+    /// 如果 MDC 本地复制可用，则跳过预加载
     func startPreload() {
         lock.lock()
         // MDC 本地可用 → 不需要预加载
         if checkForMDCUnsandbox() {
+            NSLog("[KernelPreloader] MDC本地可用，跳过预加载")
             lock.unlock()
             return
         }
-        // 已经在预加载、已完成、或正式文件已存在 → 跳过
-        guard !isPreloading && !preloadComplete && !fileManager.fileExists(atPath: kernelPath) else {
+        // 已经在预加载 → 不重复启动
+        if isPreloading {
+            NSLog("[KernelPreloader] 预加载已在进行中，忽略重复调用")
+            lock.unlock()
+            return
+        }
+        // 已完成或正式文件已存在 → 跳过
+        guard !preloadComplete && !fileManager.fileExists(atPath: kernelPath) else {
+            if preloadComplete {
+                NSLog("[KernelPreloader] 预加载已完成(success=%@)，跳过", preloadSuccess ? "yes" : "no")
+            }
+            if fileManager.fileExists(atPath: kernelPath) {
+                NSLog("[KernelPreloader] 内核文件已存在，跳过")
+            }
             lock.unlock()
             return
         }
         isPreloading = true
+        retryCount = 0
         lock.unlock()
         
-        DispatchQueue.global(qos: .utility).async { [self] in
-            NSLog("[KernelPreloader] 开始后台预加载...")
+        NSLog("[KernelPreloader] 启动后台预加载")
+        doPreload()
+    }
+    
+    /// 实际执行预加载（含重试）
+    private func doPreload() {
+        DispatchQueue.global(qos: .userInitiated).async { [self] in
+            // 给 iOS 一点时间让网络完全就绪
+            Thread.sleep(forTimeInterval: 1.0)
+            
+            NSLog("[KernelPreloader] 开始下载 (尝试 %d/%d)", retryCount + 1, maxRetries)
             let success = grab_kernelcache(kernelPreloadPath)
             
             lock.lock()
-            isPreloading = false
-            preloadComplete = true
-            preloadSuccess = success
-            lock.unlock()
-            
             if success && fileManager.fileExists(atPath: kernelPreloadPath) {
-                // 原子移动到正式路径
+                // 成功：原子移动到正式路径
+                isPreloading = false
+                preloadComplete = true
+                preloadSuccess = true
+                lock.unlock()
+                
                 try? fileManager.removeItem(atPath: kernelPath)
                 do {
                     try fileManager.moveItem(atPath: kernelPreloadPath, toPath: kernelPath)
@@ -71,11 +97,41 @@ class KernelPreloader {
                 } catch {
                     NSLog("[KernelPreloader] 移动预加载文件失败: %@", error.localizedDescription)
                     try? fileManager.removeItem(atPath: kernelPreloadPath)
+                    lock.lock()
+                    preloadSuccess = false
+                    lock.unlock()
                 }
-            } else {
-                NSLog("[KernelPreloader] 预加载失败")
-                try? fileManager.removeItem(atPath: kernelPreloadPath)
+                return
             }
+            
+            // 失败：清理并决定是否重试
+            try? fileManager.removeItem(atPath: kernelPreloadPath)
+            retryCount += 1
+            
+            if retryCount < maxRetries && !preloadComplete {
+                NSLog("[KernelPreloader] 预加载失败，%d 秒后重试 (%d/%d)", retryCount * 3, retryCount, maxRetries)
+                lock.unlock()
+                
+                Thread.sleep(forTimeInterval: TimeInterval(retryCount * 3))
+                
+                lock.lock()
+                // 再次检查：如果文件已存在（其他途径获取），停止重试
+                if fileManager.fileExists(atPath: kernelPath) || preloadComplete {
+                    isPreloading = false
+                    lock.unlock()
+                    return
+                }
+                lock.unlock()
+                doPreload()
+                return
+            }
+            
+            // 所有重试都失败
+            NSLog("[KernelPreloader] 预加载失败 (已重试 %d 次)", maxRetries)
+            isPreloading = false
+            preloadComplete = true
+            preloadSuccess = false
+            lock.unlock()
         }
     }
     
@@ -103,6 +159,7 @@ class KernelPreloader {
         isPreloading = false
         preloadComplete = true
         preloadSuccess = false
+        retryCount = maxRetries // 阻止重试
         lock.unlock()
         // 清理预加载临时文件
         try? fileManager.removeItem(atPath: kernelPreloadPath)
