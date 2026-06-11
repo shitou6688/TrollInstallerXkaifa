@@ -649,12 +649,7 @@ func doIndirectInstall(_ device: Device) async -> Bool {
         }
         
         if success {
-            let verbose = TIXDefaults().bool(forKey: "verbose")
-            Logger.log("\(verbose ? "15" : "5") 秒后注销")
-            DispatchQueue.global().async {
-                sleep(verbose ? 15 : 5)
-                restartBackboard()
-            }
+            Logger.log("请打开「\(firstCandidate.displayName)」触发持久化助手，无需注销")
         }
         return true
     }
