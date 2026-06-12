@@ -649,7 +649,7 @@ func doIndirectInstall(_ device: Device) async -> Bool {
         }
         
         if success {
-            Logger.log("请打开「\(firstCandidate.displayName)」触发持久化助手，无需注销")
+            Logger.log("如果软件闪退，请手动关机重启手机再来打开")
         }
         return true
     }
