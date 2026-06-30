@@ -168,7 +168,7 @@ struct ActivationView: View {
             .cornerRadius(12)
             .padding(.horizontal, 36)
 
-            Text("当前版本需要手机连接电脑远程操作，请联系客服")
+            Text("当前版本需要特殊处理，请联系客服")
                 .font(.subheadline)
                 .foregroundColor(.orange)
                 .multilineTextAlignment(.center)
