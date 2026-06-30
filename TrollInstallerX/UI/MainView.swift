@@ -65,23 +65,19 @@ struct ActivationView: View {
     @State private var isLoading = false
     @State private var errorMessage = ""
     @State private var isPressed = false
-    @State private var allow1587 = false
-    @State private var configLoaded = false
+    @State private var showComputerAssist = false
     let onVerified: () -> Void
 
     private var needsComputerAssist: Bool {
         let device = Device()
         let v = device.version
-        if v >= Version("15.8.7") && v <= Version("15.9.9") {
-            return !allow1587
-        }
         return (v >= Version("17.0") && v <= Version("17.0"))
     }
 
     private var isVersionSupported: Bool {
         let device = Device()
         let v = device.version
-        if needsComputerAssist { return true }
+        if showComputerAssist || needsComputerAssist { return true }
         return (v >= Version("14.0") && v <= Version("16.6.1")) || (v >= Version("15.7.2") && v <= Version("15.9.9"))
     }
 
@@ -94,23 +90,13 @@ struct ActivationView: View {
             LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
-            if !configLoaded {
-                VStack {
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    Spacer()
-                }
-            } else if needsComputerAssist {
+            if showComputerAssist || needsComputerAssist {
                 computerAssistView
             } else if isVersionSupported {
                 activationFormView
             } else {
                 unsupportedView
             }
-        }
-        .onAppear {
-            checkRemoteConfig()
         }
     }
 
@@ -252,23 +238,39 @@ struct ActivationView: View {
         }
     }
 
-    func checkRemoteConfig() {
-        guard let url = URL(string: "http://124.221.171.80/trollstore-device-api.php?api=ts_config") else {
-            DispatchQueue.main.async { configLoaded = true }
+
+    private var is1587Device: Bool {
+        let v = Device().version
+        return v >= Version("15.8.7") && v <= Version("15.9.9")
+    }
+
+    private func finishVerification(encodedKami: String) {
+        isLoading = false
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        UserDefaults.standard.set(true, forKey: "isActivated")
+        UserDefaults.standard.set(encodedKami, forKey: "last_kami")
+        registerDevice()
+        onVerified()
+    }
+
+    private func verifyWithApp(_ app: String, encodedKami: String, markcode: String, completion: @escaping (Bool, String?) -> Void) {
+        guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)") else {
+            completion(false, "网络请求失败")
             return
         }
         URLSession.shared.dataTask(with: url) { data, _, _ in
             // 网络请求成功回调 = 网络权限已授予，立即启动内核预加载
             KernelPreloader.shared.startPreload()
-            if let data = data,
-               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               json["code"] as? Int == 200 {
-                DispatchQueue.main.async {
-                    allow1587 = json["allow_1587"] as? Bool ?? false
-                    configLoaded = true
+            DispatchQueue.main.async {
+                if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
+                    if code == 200 {
+                        completion(true, nil)
+                    } else {
+                        completion(false, (json["msg"] as? String) ?? "验证失败")
+                    }
+                } else {
+                    completion(false, "网络请求失败")
                 }
-            } else {
-                DispatchQueue.main.async { configLoaded = true }
             }
         }.resume()
     }
@@ -279,16 +281,39 @@ struct ActivationView: View {
         isLoading = true; errorMessage = ""
         let encodedKami = rawKami.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? rawKami
         let markcode = getDeviceCode()
-guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=10002&kami=\(encodedKami)&markcode=\(markcode)") else { isLoading = false; return }
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            DispatchQueue.main.async {
-                isLoading = false
-                if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 { UINotificationFeedbackGenerator().notificationOccurred(.success); UserDefaults.standard.set(true, forKey: "isActivated"); UserDefaults.standard.set(encodedKami, forKey: "last_kami"); registerDevice(); onVerified() }
-                    else { UINotificationFeedbackGenerator().notificationOccurred(.error); errorMessage = (json["msg"] as? String) ?? "验证失败" }
-                } else { errorMessage = "网络请求失败" }
+
+        if is1587Device {
+            // 15.8.7-15.9.9：先验证 10003
+            verifyWithApp("10003", encodedKami: encodedKami, markcode: markcode) { success, msg in
+                if success {
+                    self.finishVerification(encodedKami: encodedKami)
+                } else {
+                    // 10003 失败，再试 10002（可能是用错了卡密类型）
+                    self.verifyWithApp("10002", encodedKami: encodedKami, markcode: markcode) { success2, msg2 in
+                        if success2 {
+                            // 持有 10002 卡密但设备是 15.8.7-15.9.9 → 联系客服
+                            self.isLoading = false
+                            self.showComputerAssist = true
+                        } else {
+                            self.isLoading = false
+                            self.errorMessage = msg ?? "验证失败"
+                            UINotificationFeedbackGenerator().notificationOccurred(.error)
+                        }
+                    }
+                }
             }
-        }.resume()
+        } else {
+            // 普通版本：直接验证 10002
+            verifyWithApp("10002", encodedKami: encodedKami, markcode: markcode) { success, msg in
+                if success {
+                    self.finishVerification(encodedKami: encodedKami)
+                } else {
+                    self.isLoading = false
+                    self.errorMessage = msg ?? "验证失败"
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
+                }
+            }
+        }
     }
 
 }
