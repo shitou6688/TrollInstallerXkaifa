@@ -653,51 +653,53 @@ struct SuccessCelebrationView: View {
 // MARK: - 星空背景叠加层
 
 struct StarryOverlay: View {
-    private let stars: [StarPoint] = StarryOverlay.generateStars(count: 100)
-    
     var body: some View {
         GeometryReader { geo in
-            ZStack {
-                // 星云雾状光斑
-                Circle()
-                    .fill(Color(red: 0.12, green: 0.16, blue: 0.38).opacity(0.30))
-                    .frame(width: 260, height: 260)
-                    .blur(radius: 80)
-                    .position(x: geo.size.width * 0.25, y: geo.size.height * 0.20)
-                
-                Circle()
-                    .fill(Color(red: 0.08, green: 0.13, blue: 0.32).opacity(0.25))
-                    .frame(width: 200, height: 200)
-                    .blur(radius: 70)
-                    .position(x: geo.size.width * 0.70, y: geo.size.height * 0.55)
-                
-                Circle()
-                    .fill(Color(red: 0.06, green: 0.10, blue: 0.28).opacity(0.20))
-                    .frame(width: 220, height: 220)
-                    .blur(radius: 85)
-                    .position(x: geo.size.width * 0.50, y: geo.size.height * 0.85)
-                
-                // 星星（确定性随机分布，每次打开都一样）
-                ForEach(stars) { star in
+            TimelineView(.animation) { _ in
+                ZStack {
+                    // 星云雾状光斑
                     Circle()
-                        .fill(Color.white.opacity(star.opacity))
-                        .frame(width: star.size, height: star.size)
-                        .position(x: star.x * geo.size.width, y: star.y * geo.size.height)
+                        .fill(Color(red: 0.12, green: 0.16, blue: 0.38).opacity(0.30))
+                        .frame(width: 260, height: 260)
+                        .blur(radius: 80)
+                        .position(x: geo.size.width * 0.25, y: geo.size.height * 0.20)
+                    
+                    Circle()
+                        .fill(Color(red: 0.08, green: 0.13, blue: 0.32).opacity(0.25))
+                        .frame(width: 200, height: 200)
+                        .blur(radius: 70)
+                        .position(x: geo.size.width * 0.70, y: geo.size.height * 0.55)
+                    
+                    Circle()
+                        .fill(Color(red: 0.06, green: 0.10, blue: 0.28).opacity(0.20))
+                        .frame(width: 220, height: 220)
+                        .blur(radius: 85)
+                        .position(x: geo.size.width * 0.50, y: geo.size.height * 0.85)
+                    
+                    // 呼吸星星画布
+                    BreathingStarsCanvas(count: 100, size: geo.size)
                 }
             }
         }
     }
+}
+
+// MARK: - 呼吸星星画布
+
+struct BreathingStarsCanvas: View {
+    let count: Int
+    let size: CGSize
     
-    struct StarPoint: Identifiable {
-        let id = UUID()
-        let x: CGFloat
-        let y: CGFloat
-        let size: CGFloat
-        let opacity: Double
+    private let stars: [(x: CGFloat, y: CGFloat, sz: CGFloat, phase: Double, baseAlpha: Double)]
+    
+    init(count: Int, size: CGSize) {
+        self.count = count
+        self.size = size
+        self.stars = Self.generateStars(count: count)
     }
     
-    static func generateStars(count: Int) -> [StarPoint] {
-        var stars: [StarPoint] = []
+    static func generateStars(count: Int) -> [(CGFloat, CGFloat, CGFloat, Double, Double)] {
+        var result: [(CGFloat, CGFloat, CGFloat, Double, Double)] = []
         var seed: UInt64 = 42
         for _ in 0..<count {
             seed = seed &* 6364136223846793005 &+ 1
@@ -705,11 +707,40 @@ struct StarryOverlay: View {
             seed = seed &* 6364136223846793005 &+ 1
             let y = CGFloat((seed >> 32) & 0xFFFF) / 65535.0
             seed = seed &* 6364136223846793005 &+ 1
-            let size = CGFloat(1.0 + Double((seed >> 32) & 0x7) * 0.35)
+            let sz = CGFloat(1.2 + Double((seed >> 32) & 0x7) * 0.4)
             seed = seed &* 6364136223846793005 &+ 1
-            let opacity = 0.12 + Double((seed >> 32) & 0x7F) / 128.0 * 0.50
-            stars.append(StarPoint(x: x, y: y, size: size, opacity: opacity))
+            let phase = Double((seed >> 32) & 0xFFFF) / 65535.0 * .pi * 2
+            seed = seed &* 6364136223846793005 &+ 1
+            let alpha = 0.08 + Double((seed >> 32) & 0x7F) / 128.0 * 0.55
+            result.append((x, y, sz, phase, alpha))
         }
-        return stars
+        return result
+    }
+    
+    @ViewBuilder
+    var body: some View {
+        let t = Date().timeIntervalSinceReferenceDate
+        Canvas { context, _ in
+            for star in stars {
+                let breathe = 0.5 + 0.5 * sin(t * (0.3 + star.phase * 0.1) + star.phase)
+                let alpha = star.baseAlpha * (0.4 + 0.6 * breathe)
+                let glow = CGRect(
+                    x: star.x * size.width - star.sz * 1.5,
+                    y: star.y * size.height - star.sz * 1.5,
+                    width: star.sz * 3,
+                    height: star.sz * 3
+                )
+                context.addFilter(.blur(radius: star.sz * 0.8))
+                context.fill(Circle().path(in: glow), with: .color(.white.opacity(alpha * 0.3)))
+                // 核心亮点
+                let core = CGRect(
+                    x: star.x * size.width - star.sz * 0.5,
+                    y: star.y * size.height - star.sz * 0.5,
+                    width: star.sz,
+                    height: star.sz
+                )
+                context.fill(Circle().path(in: core), with: .color(.white.opacity(alpha)))
+            }
+        }
     }
 }

@@ -29,7 +29,7 @@ struct PopupView<Content: View>: View {
                     }
                 }
             
-            // 玻璃卡片（对齐卡密验证页风格）
+            // 透明玻璃面板（透出背景星空）
             VStack {
                 content
             }
@@ -37,11 +37,11 @@ struct PopupView<Content: View>: View {
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(white: 0.14))
+                    .fill(Color.white.opacity(0.08))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
             .shadow(color: .black.opacity(0.3), radius: 16, x: 0, y: 6)
             .transition(.scale(scale: 0.92).combined(with: .opacity))
