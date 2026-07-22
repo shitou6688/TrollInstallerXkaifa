@@ -87,7 +87,7 @@ struct ActivationView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(stops: [.init(color: Color(red: 0.02, green: 0.03, blue: 0.07), location: 0), .init(color: Color(red: 0.04, green: 0.06, blue: 0.13), location: 0.5), .init(color: Color(red: 0.08, green: 0.12, blue: 0.20), location: 1)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
             StarryOverlay().ignoresSafeArea()
@@ -390,7 +390,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(stops: [.init(color: Color(red: 0.02, green: 0.03, blue: 0.07), location: 0), .init(color: Color(red: 0.04, green: 0.06, blue: 0.13), location: 0.5), .init(color: Color(red: 0.08, green: 0.12, blue: 0.20), location: 1)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     
                     StarryOverlay().ignoresSafeArea()
