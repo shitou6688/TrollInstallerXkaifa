@@ -109,7 +109,7 @@ struct ActivationView: View {
             Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
             VStack(spacing: 16) {
                 TextField("请输入卡密", text: $kamiText)
-                    .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
+                    .padding(12).background(Color.white.opacity(0.10)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
                 if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -128,7 +128,16 @@ struct ActivationView: View {
                 .scaleEffect(isPressed ? 0.96 : 1.0)
                 .animation(.easeInOut(duration: 0.15), value: isPressed)
             }
-            .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
+            .padding(.horizontal, 30)
             Spacer()
             VStack(spacing: 6) {
                 Text("版本：1.0").font(.caption2).foregroundColor(.gray)
