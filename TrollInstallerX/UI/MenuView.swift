@@ -20,10 +20,10 @@ struct MenuView: View {
         }) {
             HStack(spacing: 8) {
                 Image(systemName: "trash")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.white.opacity(0.55))
                 Text("清除内核缓存")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.60))
             }
             .padding(.horizontal, 16)
