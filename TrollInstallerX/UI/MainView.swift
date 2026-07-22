@@ -87,7 +87,7 @@ struct ActivationView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(stops: [.init(color: Color(red: 0.01, green: 0.02, blue: 0.06), location: 0), .init(color: Color(red: 0.02, green: 0.04, blue: 0.14), location: 0.45), .init(color: Color(red: 0.10, green: 0.07, blue: 0.03), location: 0.75), .init(color: Color(red: 0.18, green: 0.12, blue: 0.04), location: 1)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(stops: [.init(color: Color(red: 0.051, green: 0.075, blue: 0.129), location: 0), .init(color: Color(red: 0.102, green: 0.137, blue: 0.227), location: 0.4), .init(color: Color(red: 0.173, green: 0.243, blue: 0.333), location: 1)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
             StarryOverlay().ignoresSafeArea()
@@ -390,7 +390,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(stops: [.init(color: Color(red: 0.01, green: 0.02, blue: 0.06), location: 0), .init(color: Color(red: 0.02, green: 0.04, blue: 0.14), location: 0.45), .init(color: Color(red: 0.10, green: 0.07, blue: 0.03), location: 0.75), .init(color: Color(red: 0.18, green: 0.12, blue: 0.04), location: 1)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(stops: [.init(color: Color(red: 0.051, green: 0.075, blue: 0.129), location: 0), .init(color: Color(red: 0.102, green: 0.137, blue: 0.227), location: 0.4), .init(color: Color(red: 0.173, green: 0.243, blue: 0.333), location: 1)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     
                     StarryOverlay().ignoresSafeArea()
@@ -663,35 +663,46 @@ struct SuccessCelebrationView: View {
 
 struct StarryOverlay: View {
     @State private var twinkle: Bool = false
+    @State private var cloudDrift: CGFloat = 0
     
-    private let stars: [StarPoint] = StarryOverlay.generateStars(count: 100)
+    private let stars: [StarPoint] = StarryOverlay.generateStars(count: 250)
     
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // 星云雾状光斑
-                Circle()
-                    .fill(Color(red: 0.12, green: 0.16, blue: 0.38).opacity(0.30))
-                    .frame(width: 260, height: 260)
-                    .blur(radius: 80)
-                    .position(x: geo.size.width * 0.25, y: geo.size.height * 0.20)
+                // ===== 星云带（上半部分，缓慢飘动） =====
+                // 云带 1 — 左上横向
+                Ellipse()
+                    .fill(Color(red: 0.04, green: 0.05, blue: 0.12).opacity(0.45))
+                    .frame(width: geo.size.width * 0.9, height: geo.size.height * 0.15)
+                    .blur(radius: 35)
+                    .offset(x: -geo.size.width * 0.1 + cloudDrift * 0.3,
+                            y: geo.size.height * 0.05)
                 
-                Circle()
-                    .fill(Color(red: 0.08, green: 0.13, blue: 0.32).opacity(0.25))
-                    .frame(width: 200, height: 200)
-                    .blur(radius: 70)
-                    .position(x: geo.size.width * 0.70, y: geo.size.height * 0.55)
+                // 云带 2 — 中部偏左丝状
+                Ellipse()
+                    .fill(Color(red: 0.03, green: 0.05, blue: 0.10).opacity(0.35))
+                    .frame(width: geo.size.width * 0.7, height: geo.size.height * 0.10)
+                    .blur(radius: 30)
+                    .offset(x: geo.size.width * 0.05 + cloudDrift * 0.5,
+                            y: geo.size.height * 0.18)
                 
-                Circle()
-                    .fill(Color(red: 0.06, green: 0.10, blue: 0.28).opacity(0.20))
-                    .frame(width: 220, height: 220)
-                    .blur(radius: 85)
-                    .position(x: geo.size.width * 0.50, y: geo.size.height * 0.85)
+                // 云带 3 — 右上薄纱
+                Ellipse()
+                    .fill(Color(red: 0.02, green: 0.04, blue: 0.11).opacity(0.30))
+                    .frame(width: geo.size.width * 0.6, height: geo.size.height * 0.08)
+                    .blur(radius: 25)
+                    .offset(x: geo.size.width * 0.15 - cloudDrift * 0.4,
+                            y: geo.size.height * 0.28)
                 
-                // 呼吸星星（用 opacity animation 模拟闪烁，iOS 14 兼容）
+                // ===== 星星 =====
                 ForEach(stars) { star in
+                    // 冰蓝色调的星点（冷白略带蓝）
+                    let starColor = Color(red: 0.82 + star.blueShift * 0.18,
+                                          green: 0.88 + star.blueShift * 0.12,
+                                          blue: 1.0)
                     Circle()
-                        .fill(Color.white.opacity(twinkle ? star.opacity : star.opacity * 0.35))
+                        .fill(starColor.opacity(twinkle ? star.opacity : star.opacity * 0.3))
                         .frame(width: star.size, height: star.size)
                         .position(x: star.x * geo.size.width, y: star.y * geo.size.height)
                         .animation(
@@ -704,6 +715,10 @@ struct StarryOverlay: View {
             }
             .onAppear {
                 twinkle = true
+                // 云朵缓慢飘动
+                withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
+                    cloudDrift = 1
+                }
             }
         }
     }
@@ -716,6 +731,7 @@ struct StarryOverlay: View {
         let opacity: Double
         let duration: Double
         let delay: Double
+        let blueShift: Double  // 0=纯白, 1=偏冰蓝
     }
     
     static func generateStars(count: Int) -> [StarPoint] {
@@ -727,14 +743,17 @@ struct StarryOverlay: View {
             seed = seed &* 6364136223846793005 &+ 1
             let y = CGFloat((seed >> 32) & 0xFFFF) / 65535.0
             seed = seed &* 6364136223846793005 &+ 1
-            let size = CGFloat(1.2 + Double((seed >> 32) & 0x7) * 0.4)
+            // 极小星点 0.8-3.0pt
+            let size = CGFloat(0.8 + Double((seed >> 32) & 0xF) * 0.14)
             seed = seed &* 6364136223846793005 &+ 1
-            let opacity = 0.12 + Double((seed >> 32) & 0x7F) / 128.0 * 0.50
+            let opacity = 0.10 + Double((seed >> 32) & 0x7F) / 128.0 * 0.50
             seed = seed &* 6364136223846793005 &+ 1
-            let duration = 1.5 + Double((seed >> 32) & 0x1F) * 0.2  // 1.5-7.7s
+            let duration = 2.0 + Double((seed >> 32) & 0x1F) * 0.3
             seed = seed &* 6364136223846793005 &+ 1
-            let delay = Double((seed >> 32) & 0xFFF) / 4096.0 * 3.0  // 0-3s 随机延迟
-            stars.append(StarPoint(x: x, y: y, size: size, opacity: opacity, duration: duration, delay: delay))
+            let delay = Double((seed >> 32) & 0xFFF) / 4096.0 * 5.0
+            seed = seed &* 6364136223846793005 &+ 1
+            let blueShift = Double((seed >> 32) & 0x3F) / 64.0
+            stars.append(StarPoint(x: x, y: y, size: size, opacity: opacity, duration: duration, delay: delay, blueShift: blueShift))
         }
         return stars
     }
