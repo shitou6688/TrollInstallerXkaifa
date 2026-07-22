@@ -116,11 +116,11 @@ struct StepCardView: View {
     let log: LogItem
     let isLast: Bool
     
-    // 统一的深蓝背景色（匹配主背景）
-    private let cardBg = Color(red: 0.12, green: 0.13, blue: 0.22).opacity(0.55)
-    private let cardBorder = Color.white.opacity(0.06)
-    // 连接线用非常淡的蓝灰
-    private let lineColor = Color.white.opacity(0.10)
+    // 玻璃卡片背景
+    private let cardBg = Color(red: 0.16, green: 0.18, blue: 0.28).opacity(0.55)
+    private let cardBorder = Color.white.opacity(0.10)
+    // 连接线
+    private let lineColor = Color.white.opacity(0.12)
     
     private var stepColor: Color {
         switch log.type {
@@ -188,8 +188,16 @@ struct StepCardView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(cardBg)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(cardBg)
+                    // 顶部玻璃高光
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(LinearGradient(
+                            colors: [Color.white.opacity(0.04), Color.clear],
+                            startPoint: .top, endPoint: .center
+                        ))
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 10)

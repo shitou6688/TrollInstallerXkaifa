@@ -385,73 +385,78 @@ struct MainView: View {
                     // 背景光斑
                     StaticOrbsView().ignoresSafeArea()
                     
-                    VStack {
-                        VStack {
+                    VStack(spacing: 0) {
+                        // ===== 顶部：App 图标 + 标题 =====
+                        VStack(spacing: 6) {
                             Image("Icon")
                                 .resizable()
                                 .cornerRadius(24)
-                                .frame(width: 100, height: 100)
-                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 24, x: 0, y: 8)
+                                .frame(width: 88, height: 88)
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.25), radius: 20, x: 0, y: 6)
                             Text("巨魔安装器")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .font(.system(size: 26, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
-                                .padding(.top, 4)
-                            Text("版本号：1.0")
-                                .font(.system(size: 14, weight: .regular, design: .rounded))
-                                .foregroundColor(.white.opacity(0.45))
+                            Text("版本 1.0")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.35))
                         }
-                        .padding(.vertical)
+                        .padding(.top, 10)
+                        
                         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowDownloadHint"))) { _ in
                             withAnimation { showDownloadHint = true }
                         }
+                        
+                        Spacer().frame(height: 12)
+                        
                         if isInstalling && showDownloadHint {
                             HStack(spacing: 6) {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 11))
                                     .foregroundColor(.orange)
                                 Text("如长时间无响应，请关机重启设备后再来安装")
                                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                                    .foregroundColor(.orange.opacity(0.9))
+                                    .foregroundColor(.orange.opacity(0.85))
                             }
                             .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 7)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.orange.opacity(0.12))
+                                    .fill(Color.orange.opacity(0.10))
                             )
-                            .frame(maxWidth: geometry.size.width / 1.2)
+                            .padding(.horizontal, 24)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
-                        if !isInstalling {
-                            MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
-                                .frame(maxWidth: geometry.size.width / 1.2, maxHeight: geometry.size.height / 4)
-                                .transition(.scale)
-                                .padding()
-                                .shadow(radius: 10)
-                                .disabled(!device.isSupported)
-                        }
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14)
-                                .foregroundColor(.white.opacity(0.06))
-                                .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
+                        
+                        // ===== 玻璃面板主区域 =====
+                        VStack(spacing: 0) {
+                            if !isInstalling {
+                                MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
+                                    .padding(.horizontal, 8)
+                                    .padding(.top, 14)
+                                    .padding(.bottom, 10)
+                                    .disabled(!device.isSupported)
+                                
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.06))
+                                    .frame(height: 1)
+                                    .padding(.horizontal, 20)
+                            }
                             
+                            // 安装按钮 / 日志区域
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
-                                    .padding(10)
-                                    .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: geometry.size.height / 1.75)
+                                    .padding(12)
+                                    .frame(maxWidth: geometry.size.width * 0.82)
+                                    .frame(maxHeight: geometry.size.height * 0.52)
                                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                             } else {
-                                // 脉冲发光按钮
                                 ZStack {
-                                    // 外发光脉冲层
+                                    // 外发光
                                     RoundedRectangle(cornerRadius: 16)
                                         .fill(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                                        .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 60)
-                                        .blur(radius: 12)
-                                        .opacity(device.isSupported ? 0.35 : 0)
+                                        .frame(width: geometry.size.width * 0.62, height: 52)
+                                        .blur(radius: 10)
+                                        .opacity(device.isSupported ? 0.30 : 0)
                                     
                                     Button(action: {
                                         if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
@@ -462,29 +467,38 @@ struct MainView: View {
                                     }, label: {
                                         HStack(spacing: 6) {
                                             Image(systemName: "arrow.down.to.line.compact")
-                                                .font(.system(size: 15, weight: .semibold))
+                                                .font(.system(size: 14, weight: .semibold))
                                             Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .font(.system(size: 16, weight: .semibold, design: .rounded))
                                         }
                                         .foregroundColor(device.isSupported ? .white : .secondary)
-                                        .padding()
-                                        .frame(maxWidth: geometry.size.width / 1.2)
-                                        .frame(maxHeight: 60)
+                                        .frame(width: geometry.size.width * 0.62, height: 50)
                                         .contentShape(Rectangle())
                                         .background(
                                             LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
                                         )
                                         .cornerRadius(14)
-                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 20, x: 0, y: 8)
                                     })
-                                    .scaleEffect(isInstalling ? 0.95 : 1.0)
+                                    .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 16, x: 0, y: 6)
+                                    .disabled(!device.isSupported)
                                 }
-                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                                .padding(.vertical, 18)
                             }
                         }
-                        .padding(.horizontal, 8)
-                        .disabled(!device.isSupported)
+                        .frame(maxWidth: geometry.size.width * 0.88)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(Color.white.opacity(0.06))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        )
+                        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
+                        
+                        Spacer(minLength: 16)
                     }
+                    .frame(maxWidth: .infinity)
                     .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
                 }
                 
