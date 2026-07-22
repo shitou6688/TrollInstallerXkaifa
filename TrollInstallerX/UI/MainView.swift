@@ -372,6 +372,7 @@ struct MainView: View {
     @State private var isShowingCredits = false
     @State private var installedSuccessfully = false
     @State private var installationFinished = false
+    @State private var showSuccessCelebration = false
     @ObservedObject var helperView = HelperAlert.shared
 
     var body: some View {
@@ -434,44 +435,64 @@ struct MainView: View {
                                 .foregroundColor(.white.opacity(0.06))
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
-                                .transition(.scale)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
+                            
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
-                                    .padding()
+                                    .padding(10)
                                     .frame(maxWidth: geometry.size.width / 1.2)
                                     .frame(maxHeight: geometry.size.height / 1.75)
+                                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
                             } else {
-                                Button(action: {
-                                    if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                                        UIImpactFeedbackGenerator().impactOccurred()
-                                        showDownloadHint = false; withAnimation { isInstalling.toggle() }
-                                    }
-                                }, label: {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "arrow.down.to.line.compact")
-                                            .font(.system(size: 15, weight: .semibold))
-                                        Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                            .font(.system(size: 18, weight: .semibold, design: .rounded))
-                                    }
-                                    .foregroundColor(device.isSupported ? .white : .secondary)
-                                    .padding()
-                                    .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: 60)
-                                    .contentShape(Rectangle())
-                                    .background(
-                                        LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
-                                    )
-                                    .cornerRadius(14)
-                                    .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 20, x: 0, y: 8)
-                                })
-                                .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: 60)
+                                // 脉冲发光按钮
+                                ZStack {
+                                    // 外发光脉冲层
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
+                                        .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 60)
+                                        .blur(radius: 12)
+                                        .opacity(device.isSupported ? 0.35 : 0)
+                                    
+                                    Button(action: {
+                                        if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
+                                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                            showDownloadHint = false
+                                            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { isInstalling = true }
+                                        }
+                                    }, label: {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "arrow.down.to.line.compact")
+                                                .font(.system(size: 15, weight: .semibold))
+                                            Text(device.isSupported ? "安装 TrollStore" : "不支持")
+                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                        }
+                                        .foregroundColor(device.isSupported ? .white : .secondary)
+                                        .padding()
+                                        .frame(maxWidth: geometry.size.width / 1.2)
+                                        .frame(maxHeight: 60)
+                                        .contentShape(Rectangle())
+                                        .background(
+                                            LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
+                                        )
+                                        .cornerRadius(14)
+                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 20, x: 0, y: 8)
+                                    })
+                                    .scaleEffect(isInstalling ? 0.95 : 1.0)
+                                }
+                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
                             }
                         }
-                        .padding()
+                        .padding(.horizontal, 8)
                         .disabled(!device.isSupported)
                     }
                     .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
+                }
+                
+                // 安装成功庆祝动画
+                if showSuccessCelebration {
+                    SuccessCelebrationView()
+                        .transition(.opacity)
+                        .zIndex(100)
                 }
                 if isShowingOTAAlert {
                     PopupView(isShowingAlert: $isShowingOTAAlert, content: {
@@ -522,6 +543,16 @@ struct MainView: View {
                             installedSuccessfully = await doIndirectInstall(device)
                         }
                         installationFinished = true
+                        if installedSuccessfully {
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                                showSuccessCelebration = true
+                            }
+                            // 3秒后自动收起庆祝效果回到初始状态
+                            try? await Task.sleep(nanoseconds: 3_000_000_000)
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                showSuccessCelebration = false
+                            }
+                        }
                     }
                     UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
                 }
@@ -575,6 +606,44 @@ struct StaticOrbsView: View {
                 .frame(width: 160, height: 160)
                 .blur(radius: 70)
                 .offset(x: -20, y: 140)
+        }
+    }
+}
+
+// MARK: - 安装成功庆祝动画
+
+struct SuccessCelebrationView: View {
+    @State private var scale: CGFloat = 0.3
+    @State private var opacity: Double = 0
+    @State private var rotation: Double = 0
+    
+    var body: some View {
+        ZStack {
+            // 外圈扩散光晕
+            Circle()
+                .fill(Color(red: 0.20, green: 0.78, blue: 0.35).opacity(opacity * 0.3))
+                .frame(width: 200 * scale, height: 200 * scale)
+                .blur(radius: 30)
+            
+            // 中间对勾
+            ZStack {
+                Circle()
+                    .fill(Color(red: 0.20, green: 0.78, blue: 0.35))
+                    .frame(width: 80, height: 80)
+                    .shadow(color: Color(red: 0.20, green: 0.78, blue: 0.35).opacity(0.5), radius: 20, x: 0, y: 0)
+                
+                Image(systemName: "checkmark")
+                    .font(.system(size: 36, weight: .heavy))
+                    .foregroundColor(.white)
+            }
+            .scaleEffect(scale)
+            .opacity(opacity)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.5)) {
+                scale = 1.0
+                opacity = 1.0
+            }
         }
     }
 }
