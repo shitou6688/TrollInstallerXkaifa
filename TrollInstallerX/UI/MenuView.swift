@@ -13,66 +13,29 @@ struct MenuView: View {
     let device: Device
     
     var body: some View {
-        VStack(spacing: 0) {
-            MenuRow(
-                icon: "gearshape",
-                title: "设置",
-                action: {
-                    guard !isShowingCredits, !isShowingMDCAlert, !isShowingOTAAlert else { return }
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation { isShowingSettings = true }
-                }
-            )
-            
-            Rectangle()
-                .fill(Color.white.opacity(0.06))
-                .frame(height: 1)
-                .padding(.horizontal, 16)
-            
-            MenuRow(
-                icon: "info.circle",
-                title: "关于",
-                action: {
-                    guard !isShowingSettings, !isShowingMDCAlert, !isShowingOTAAlert else { return }
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    withAnimation { isShowingCredits = true }
-                }
-            )
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white.opacity(0.08))
-        )
-    }
-}
-
-struct MenuRow: View {
-    let icon: String
-    let title: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
+        Button(action: {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            try? FileManager.default.removeItem(atPath: docsDir.path + "/kernelcache")
+        }) {
+            HStack(spacing: 8) {
+                Image(systemName: "trash")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.white.opacity(0.55))
+                Text("清除内核缓存")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.60))
-                    .frame(width: 20)
-                
-                Text(title)
-                    .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundColor(.white.opacity(0.80))
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.25))
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 13)
-            .contentShape(Rectangle())
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(Color.white.opacity(0.08))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
         }
-        .buttonStyle(.plain)
     }
 }

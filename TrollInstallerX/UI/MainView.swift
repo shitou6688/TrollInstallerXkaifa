@@ -436,7 +436,7 @@ struct MainView: View {
                             MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
                                 .frame(maxWidth: geometry.size.width / 1.2, maxHeight: geometry.size.height / 4)
                                 .transition(.scale)
-                                .padding(.bottom, 36)
+                                .padding(.bottom, 44)
                                 .shadow(radius: 10)
                                 .disabled(!device.isSupported)
                         }
