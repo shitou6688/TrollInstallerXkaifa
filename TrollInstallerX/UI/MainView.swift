@@ -436,7 +436,7 @@ struct MainView: View {
                             MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
                                 .frame(maxWidth: geometry.size.width / 1.2, maxHeight: geometry.size.height / 4)
                                 .transition(.scale)
-                                .padding()
+                                .padding(.bottom, 24)
                                 .shadow(radius: 10)
                                 .disabled(!device.isSupported)
                         }
@@ -475,7 +475,7 @@ struct MainView: View {
                                             Image(systemName: "arrow.down.to.line.compact")
                                                 .font(.system(size: 15, weight: .semibold))
                                             Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                                .font(.system(size: 20, weight: .semibold, design: .rounded))
                                         }
                                         .foregroundColor(device.isSupported ? .white : .secondary)
                                         .padding()
@@ -673,7 +673,7 @@ struct StarryOverlay: View {
                 // ===== 星云带（上半部分，缓慢飘动） =====
                 // 云带 1 — 左上横向
                 Ellipse()
-                    .fill(Color(red: 0.02, green: 0.03, blue: 0.08).opacity(0.55))
+                    .fill(Color(red: 0.04, green: 0.06, blue: 0.15).opacity(0.45))
                     .frame(width: geo.size.width * 0.9, height: geo.size.height * 0.15)
                     .blur(radius: 35)
                     .offset(x: -geo.size.width * 0.1 + cloudDrift * 0.3,
@@ -681,7 +681,7 @@ struct StarryOverlay: View {
                 
                 // 云带 2 — 中部偏左丝状
                 Ellipse()
-                    .fill(Color(red: 0.02, green: 0.03, blue: 0.07).opacity(0.45))
+                    .fill(Color(red: 0.04, green: 0.06, blue: 0.13).opacity(0.40))
                     .frame(width: geo.size.width * 0.7, height: geo.size.height * 0.10)
                     .blur(radius: 30)
                     .offset(x: geo.size.width * 0.05 + cloudDrift * 0.5,
@@ -689,7 +689,7 @@ struct StarryOverlay: View {
                 
                 // 云带 3 — 右上薄纱
                 Ellipse()
-                    .fill(Color(red: 0.01, green: 0.03, blue: 0.08).opacity(0.40))
+                    .fill(Color(red: 0.03, green: 0.05, blue: 0.12).opacity(0.35))
                     .frame(width: geo.size.width * 0.6, height: geo.size.height * 0.08)
                     .blur(radius: 25)
                     .offset(x: geo.size.width * 0.15 - cloudDrift * 0.4,
