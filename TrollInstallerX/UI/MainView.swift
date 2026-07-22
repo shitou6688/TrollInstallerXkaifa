@@ -90,6 +90,8 @@ struct ActivationView: View {
             LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
+            StarryOverlay().ignoresSafeArea()
+
             if showComputerAssist || needsComputerAssist {
                 computerAssistView
             } else if isVersionSupported {
@@ -382,6 +384,8 @@ struct MainView: View {
                     LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     
+                    StarryOverlay().ignoresSafeArea()
+
                     VStack {
                         VStack {
                             Image("Icon")
@@ -434,7 +438,7 @@ struct MainView: View {
                                 .frame(maxWidth: geometry.size.width / 1.18)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
-                            
+
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
                                     .padding(10)
@@ -450,7 +454,7 @@ struct MainView: View {
                                         .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 60)
                                         .blur(radius: 12)
                                         .opacity(device.isSupported ? 0.35 : 0)
-                                    
+
                                     Button(action: {
                                         if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
                                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -485,7 +489,7 @@ struct MainView: View {
                     }
                     .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
                 }
-                
+
                 // 安装成功庆祝动画
                 if showSuccessCelebration {
                     SuccessCelebrationView()
@@ -592,13 +596,13 @@ struct StaticOrbsView: View {
                 .frame(width: 200, height: 200)
                 .blur(radius: 60)
                 .offset(x: -60, y: -100)
-            
+
             Circle()
                 .fill(Color(red: 0.31, green: 0.40, blue: 0.90).opacity(0.08))
                 .frame(width: 150, height: 150)
                 .blur(radius: 50)
                 .offset(x: 70, y: 20)
-            
+
             Circle()
                 .fill(Color(red: 0.15, green: 0.55, blue: 0.85).opacity(0.06))
                 .frame(width: 160, height: 160)
@@ -614,7 +618,7 @@ struct SuccessCelebrationView: View {
     @State private var scale: CGFloat = 0.3
     @State private var opacity: Double = 0
     @State private var rotation: Double = 0
-    
+
     var body: some View {
         ZStack {
             // 外圈扩散光晕
@@ -622,14 +626,14 @@ struct SuccessCelebrationView: View {
                 .fill(Color(red: 0.20, green: 0.78, blue: 0.35).opacity(opacity * 0.3))
                 .frame(width: 200 * scale, height: 200 * scale)
                 .blur(radius: 30)
-            
+
             // 中间对勾
             ZStack {
                 Circle()
                     .fill(Color(red: 0.20, green: 0.78, blue: 0.35))
                     .frame(width: 80, height: 80)
                     .shadow(color: Color(red: 0.20, green: 0.78, blue: 0.35).opacity(0.5), radius: 20, x: 0, y: 0)
-                
+
                 Image(systemName: "checkmark")
                     .font(.system(size: 36, weight: .heavy))
                     .foregroundColor(.white)
@@ -643,5 +647,69 @@ struct SuccessCelebrationView: View {
                 opacity = 1.0
             }
         }
+    }
+}
+
+// MARK: - 星空背景叠加层
+
+struct StarryOverlay: View {
+    private let stars: [StarPoint] = StarryOverlay.generateStars(count: 100)
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                // 星云雾状光斑
+                Circle()
+                    .fill(Color(red: 0.12, green: 0.16, blue: 0.38).opacity(0.30))
+                    .frame(width: 260, height: 260)
+                    .blur(radius: 80)
+                    .position(x: geo.size.width * 0.25, y: geo.size.height * 0.20)
+                
+                Circle()
+                    .fill(Color(red: 0.08, green: 0.13, blue: 0.32).opacity(0.25))
+                    .frame(width: 200, height: 200)
+                    .blur(radius: 70)
+                    .position(x: geo.size.width * 0.70, y: geo.size.height * 0.55)
+                
+                Circle()
+                    .fill(Color(red: 0.06, green: 0.10, blue: 0.28).opacity(0.20))
+                    .frame(width: 220, height: 220)
+                    .blur(radius: 85)
+                    .position(x: geo.size.width * 0.50, y: geo.size.height * 0.85)
+                
+                // 星星（确定性随机分布，每次打开都一样）
+                ForEach(stars) { star in
+                    Circle()
+                        .fill(Color.white.opacity(star.opacity))
+                        .frame(width: star.size, height: star.size)
+                        .position(x: star.x * geo.size.width, y: star.y * geo.size.height)
+                }
+            }
+        }
+    }
+    
+    struct StarPoint: Identifiable {
+        let id = UUID()
+        let x: CGFloat
+        let y: CGFloat
+        let size: CGFloat
+        let opacity: Double
+    }
+    
+    static func generateStars(count: Int) -> [StarPoint] {
+        var stars: [StarPoint] = []
+        var seed: UInt64 = 42
+        for _ in 0..<count {
+            seed = seed &* 6364136223846793005 &+ 1
+            let x = CGFloat((seed >> 32) & 0xFFFF) / 65535.0
+            seed = seed &* 6364136223846793005 &+ 1
+            let y = CGFloat((seed >> 32) & 0xFFFF) / 65535.0
+            seed = seed &* 6364136223846793005 &+ 1
+            let size = CGFloat(1.0 + Double((seed >> 32) & 0x7) * 0.35)
+            seed = seed &* 6364136223846793005 &+ 1
+            let opacity = 0.12 + Double((seed >> 32) & 0x7F) / 128.0 * 0.50
+            stars.append(StarPoint(x: x, y: y, size: size, opacity: opacity))
+        }
+        return stars
     }
 }
