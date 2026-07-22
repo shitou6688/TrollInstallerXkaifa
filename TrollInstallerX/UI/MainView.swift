@@ -87,7 +87,7 @@ struct ActivationView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(stops: [.init(color: Color(red: 0.051, green: 0.075, blue: 0.129), location: 0), .init(color: Color(red: 0.102, green: 0.137, blue: 0.227), location: 0.4), .init(color: Color(red: 0.173, green: 0.243, blue: 0.333), location: 1)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(stops: [.init(color: Color(red: 0.02, green: 0.03, blue: 0.07), location: 0), .init(color: Color(red: 0.04, green: 0.06, blue: 0.13), location: 0.5), .init(color: Color(red: 0.08, green: 0.12, blue: 0.20), location: 1)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
             StarryOverlay().ignoresSafeArea()
@@ -390,7 +390,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(stops: [.init(color: Color(red: 0.051, green: 0.075, blue: 0.129), location: 0), .init(color: Color(red: 0.102, green: 0.137, blue: 0.227), location: 0.4), .init(color: Color(red: 0.173, green: 0.243, blue: 0.333), location: 1)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(stops: [.init(color: Color(red: 0.02, green: 0.03, blue: 0.07), location: 0), .init(color: Color(red: 0.04, green: 0.06, blue: 0.13), location: 0.5), .init(color: Color(red: 0.08, green: 0.12, blue: 0.20), location: 1)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     
                     StarryOverlay().ignoresSafeArea()
@@ -673,7 +673,7 @@ struct StarryOverlay: View {
                 // ===== 星云带（上半部分，缓慢飘动） =====
                 // 云带 1 — 左上横向
                 Ellipse()
-                    .fill(Color(red: 0.04, green: 0.05, blue: 0.12).opacity(0.45))
+                    .fill(Color(red: 0.02, green: 0.03, blue: 0.08).opacity(0.55))
                     .frame(width: geo.size.width * 0.9, height: geo.size.height * 0.15)
                     .blur(radius: 35)
                     .offset(x: -geo.size.width * 0.1 + cloudDrift * 0.3,
@@ -681,7 +681,7 @@ struct StarryOverlay: View {
                 
                 // 云带 2 — 中部偏左丝状
                 Ellipse()
-                    .fill(Color(red: 0.03, green: 0.05, blue: 0.10).opacity(0.35))
+                    .fill(Color(red: 0.02, green: 0.03, blue: 0.07).opacity(0.45))
                     .frame(width: geo.size.width * 0.7, height: geo.size.height * 0.10)
                     .blur(radius: 30)
                     .offset(x: geo.size.width * 0.05 + cloudDrift * 0.5,
@@ -689,7 +689,7 @@ struct StarryOverlay: View {
                 
                 // 云带 3 — 右上薄纱
                 Ellipse()
-                    .fill(Color(red: 0.02, green: 0.04, blue: 0.11).opacity(0.30))
+                    .fill(Color(red: 0.01, green: 0.03, blue: 0.08).opacity(0.40))
                     .frame(width: geo.size.width * 0.6, height: geo.size.height * 0.08)
                     .blur(radius: 25)
                     .offset(x: geo.size.width * 0.15 - cloudDrift * 0.4,
