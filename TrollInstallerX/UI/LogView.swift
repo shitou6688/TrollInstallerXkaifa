@@ -116,11 +116,9 @@ struct StepCardView: View {
     let log: LogItem
     let isLast: Bool
     
-    // iOS 26 风格玻璃卡片
-    private let cardBg = Color.white.opacity(0.07)
-    private let cardBorder = Color.white.opacity(0.12)
-    // 连接线
-    private let lineColor = Color.white.opacity(0.15)
+    // iOS 26 超通透玻璃
+    private let cardBg = Color.white.opacity(0.05)
+    private let cardBorder = Color.white.opacity(0.10)
     
     private var stepColor: Color {
         switch log.type {
@@ -149,60 +147,37 @@ struct StepCardView: View {
     }
     
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // 左侧：步骤序号 + 连接线
-            VStack(spacing: 0) {
-                ZStack {
-                    Circle()
-                        .fill(stepColor.opacity(0.18))
-                        .frame(width: 26, height: 26)
-                    Text("\(index + 1)")
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                        .foregroundColor(stepColor)
-                }
-                
-                if !isLast {
-                    Rectangle()
-                        .fill(lineColor)
-                        .frame(width: 1.5)
-                        .frame(height: 16)
-                }
-            }
-            .frame(width: 34)
-            .padding(.top, 2)
+        HStack(spacing: 10) {
+            Image(systemName: iconName)
+                .font(.system(size: 14))
+                .foregroundColor(stepColor)
             
-            // 右侧：卡片内容
-            HStack(spacing: 10) {
-                Image(systemName: iconName)
-                    .font(.system(size: 14))
-                    .foregroundColor(stepColor)
-                
-                Text(log.message)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(.white.opacity(0.92))
-                    .lineSpacing(3)
-                    .fixedSize(horizontal: false, vertical: true)
-                
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(cardBg)
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(LinearGradient(
-                            colors: [Color.white.opacity(0.06), Color.clear],
-                            startPoint: .top, endPoint: .center
-                        ))
-                }
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(cardBorder, lineWidth: 1)
-            )
+            Text(log.message)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.92))
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            Spacer(minLength: 0)
         }
-        .padding(.bottom, isLast ? 0 : 6)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(cardBg)
+                // 顶部微高光
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.04), Color.clear],
+                        startPoint: .top, endPoint: .center
+                    ))
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(cardBorder, lineWidth: 1)
+        )
+        .padding(.bottom, isLast ? 0 : 8)
     }
 }
