@@ -384,12 +384,11 @@ struct MainView: View {
                         VStack {
                             Image("Icon")
                                 .resizable()
-                                .cornerRadius(22)
-                                .frame(maxWidth: 120, maxHeight: 120)
-                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.4), radius: 20, x: 0, y: 5)
-                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.2), radius: 40, x: 0, y: 10)
+                                .cornerRadius(24)
+                                .frame(width: 100, height: 100)
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 24, x: 0, y: 8)
                             Text("巨魔安装器")
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                                 .padding(.top, 4)
                             Text("版本号：1.0")
@@ -427,12 +426,11 @@ struct MainView: View {
                                 .disabled(!device.isSupported)
                         }
                         ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .foregroundColor(.white.opacity(0.08))
+                            RoundedRectangle(cornerRadius: 14)
+                                .foregroundColor(.white.opacity(0.06))
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
                                 .transition(.scale)
-                                .shadow(radius: 10)
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
                                     .padding()
@@ -445,18 +443,22 @@ struct MainView: View {
                                         showDownloadHint = false; withAnimation { isInstalling.toggle() }
                                     }
                                 }, label: {
-                                    Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                        .font(.system(size: 20, weight: .semibold, design: .rounded))
-                                        .foregroundColor(device.isSupported ? .white : .secondary)
-                                        .padding()
-                                        .frame(maxWidth: geometry.size.width / 1.2)
-                                        .frame(maxHeight: 60)
-                                        .contentShape(Rectangle())
-                                        .background(
-                                            LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
-                                        )
-                                        .cornerRadius(14)
-                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.35), radius: 16, x: 0, y: 8)
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "arrow.down.to.line.compact")
+                                            .font(.system(size: 15, weight: .semibold))
+                                        Text(device.isSupported ? "安装 TrollStore" : "不支持")
+                                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                                    }
+                                    .foregroundColor(device.isSupported ? .white : .secondary)
+                                    .padding()
+                                    .frame(maxWidth: geometry.size.width / 1.2)
+                                    .frame(maxHeight: 60)
+                                    .contentShape(Rectangle())
+                                    .background(
+                                        LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
+                                    )
+                                    .cornerRadius(14)
+                                    .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 20, x: 0, y: 8)
                                 })
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: 60)

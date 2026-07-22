@@ -2,8 +2,6 @@
 //  MenuView.swift
 //  TrollInstallerX
 //
-//  Created by Alfie on 22/03/2024.
-//
 
 import SwiftUI
 
@@ -13,82 +11,68 @@ struct MenuView: View {
     @Binding var isShowingMDCAlert: Bool
     @Binding var isShowingOTAAlert: Bool
     let device: Device
+    
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .foregroundColor(.white.opacity(0.15))
-                VStack {
-                    Button(action: {
-                        if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                            UIImpactFeedbackGenerator().impactOccurred()
-                            withAnimation {
-                                isShowingSettings = true
-                            }
-                        }
-                    }, label: {
-                        HStack {
-                            Label(
-                                title: {
-                                    Text("设置")
-                                        .font(.system(size: 17, weight: .regular, design: .rounded))
-                                },
-                                icon: { Image(systemName: "gear")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 22, height: 22)
-                                        .padding(.trailing, 5)
-                                }
-                            )
-                            .foregroundColor(device.isSupported ? .white : .secondary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.body)
-                                .foregroundColor(.white.opacity(0.5))
-                        }
-                    })
-                    .padding()
-                    .frame(maxHeight: geometry.size.height / 2)
-                    
-                    Divider()
-                    
-                    Button(action: {
-                        if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                            UIImpactFeedbackGenerator().impactOccurred()
-                            withAnimation {
-                                isShowingCredits = true
-                            }
-                        }
-                    }, label: {
-                        HStack {
-                            Label(
-                                title: {
-                                    Text("关于")
-                                        .font(.system(size: 17, weight: .regular, design: .rounded))
-                                },
-                                icon: { Image(systemName: "info.circle")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 22, height: 22)
-                                        .padding(.trailing, 5)
-                                }
-                            )
-                            .foregroundColor(device.isSupported ? .white : .secondary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.body)
-                                .foregroundColor(.white.opacity(0.5))
-                        }
-                    })
-                    .padding()
-                    .frame(maxHeight: geometry.size.height / 2)
+        VStack(spacing: 0) {
+            MenuRow(
+                icon: "gearshape",
+                title: "设置",
+                action: {
+                    guard !isShowingCredits, !isShowingMDCAlert, !isShowingOTAAlert else { return }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation { isShowingSettings = true }
                 }
-                .padding()
-            }
+            )
+            
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .frame(height: 1)
+                .padding(.horizontal, 16)
+            
+            MenuRow(
+                icon: "info.circle",
+                title: "关于",
+                action: {
+                    guard !isShowingSettings, !isShowingMDCAlert, !isShowingOTAAlert else { return }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    withAnimation { isShowingCredits = true }
+                }
+            )
         }
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white.opacity(0.08))
+        )
+    }
+}
+
+struct MenuRow: View {
+    let icon: String
+    let title: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white.opacity(0.60))
+                    .frame(width: 20)
+                
+                Text(title)
+                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                    .foregroundColor(.white.opacity(0.80))
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.25))
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 13)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

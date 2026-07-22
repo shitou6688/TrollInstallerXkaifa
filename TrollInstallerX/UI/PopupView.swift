@@ -2,8 +2,6 @@
 //  PopupView.swift
 //  TrollInstallerX
 //
-//  Created by Alfie on 23/03/2024.
-//
 
 import SwiftUI
 
@@ -19,40 +17,34 @@ struct PopupView<Content: View>: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                
-                // Allows for tapping anywhere to dismiss
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .foregroundColor(.white.opacity(0.000001))
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        if shouldAllowDismiss {
-                            withAnimation {
-                                isShowingAlert.toggle()
-                            }
+        ZStack {
+            // 半透明遮罩
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    if shouldAllowDismiss {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+                            isShowingAlert = false
                         }
                     }
-                
-                RoundedRectangle(cornerRadius: 10)
-                    .foregroundColor(.white.opacity(0.1))
-                    .frame(maxWidth: geometry.size.width / 1.2)
-                    .frame(maxHeight: geometry.size.height / 1.75)
-                    .transition(.scale)
-                
-                
-                VStack {
-                    // Custom view
-                    content
-                        .frame(maxWidth: geometry.size.width / 1.35)
-                        .frame(maxHeight: geometry.size.height / 1.75)
                 }
-                .frame(maxWidth: geometry.size.width / 1.2)
-                .frame(maxHeight: geometry.size.height / 1.75)
-                .transition(.scale)
-                
+            
+            // 毛玻璃卡片
+            VStack {
+                content
             }
+            .padding(20)
+            .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
+            .background(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(red: 0.12, green: 0.13, blue: 0.25).opacity(0.90))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .transition(.scale(scale: 0.92).combined(with: .opacity))
         }
     }
 }
