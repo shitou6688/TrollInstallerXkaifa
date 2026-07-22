@@ -29,28 +29,21 @@ struct PopupView<Content: View>: View {
                     }
                 }
             
-            // iOS 26 风格玻璃面板
+            // 玻璃卡片（对齐卡密验证页风格）
             VStack {
                 content
             }
             .padding(22)
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
             .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(Color.white.opacity(0.10))
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(LinearGradient(
-                            colors: [Color.white.opacity(0.10), Color.clear],
-                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.3)
-                        ))
-                }
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(white: 0.14))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.25), radius: 20, x: 0, y: 8)
+            .shadow(color: .black.opacity(0.3), radius: 16, x: 0, y: 6)
             .transition(.scale(scale: 0.92).combined(with: .opacity))
         }
     }

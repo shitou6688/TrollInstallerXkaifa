@@ -382,9 +382,6 @@ struct MainView: View {
                     LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     
-                    // 背景光斑
-                    StaticOrbsView().ignoresSafeArea()
-                    
                     VStack {
                         VStack {
                             Image("Icon")
