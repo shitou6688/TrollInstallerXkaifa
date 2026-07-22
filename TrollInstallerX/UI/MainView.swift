@@ -431,10 +431,25 @@ struct MainView: View {
                                 .disabled(!device.isSupported)
                         }
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14)
-                                .foregroundColor(.white.opacity(0.06))
-                                .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
+                            // 玻璃面板背景
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.white.opacity(0.06))
+                                .frame(maxWidth: geometry.size.width / 1.18)
+                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                                )
+                                .overlay(
+                                    // 顶部玻璃高光
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(LinearGradient(
+                                            colors: [Color.white.opacity(0.04), Color.clear],
+                                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.25)
+                                        ))
+                                        .frame(maxWidth: geometry.size.width / 1.18)
+                                        .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
+                                )
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
                             
                             if isInstalling {

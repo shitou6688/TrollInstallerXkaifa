@@ -29,21 +29,29 @@ struct PopupView<Content: View>: View {
                     }
                 }
             
-            // 毛玻璃卡片
+            // 玻璃面板
             VStack {
                 content
             }
-            .padding(20)
+            .padding(22)
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color(red: 0.12, green: 0.13, blue: 0.25).opacity(0.90))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color(red: 0.10, green: 0.12, blue: 0.22).opacity(0.85))
+                    // 顶部玻璃高光
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(LinearGradient(
+                            colors: [Color.white.opacity(0.06), Color.clear],
+                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.3)
+                        ))
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
+            .shadow(color: .black.opacity(0.4), radius: 25, x: 0, y: 12)
             .transition(.scale(scale: 0.92).combined(with: .opacity))
         }
     }
