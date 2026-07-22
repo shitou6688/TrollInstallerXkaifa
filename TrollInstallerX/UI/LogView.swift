@@ -35,7 +35,6 @@ struct LogView: View {
                             }
                             .frame(width: geometry.size.width)
                         }
-                        
                         .onChange(of: stdoutItems) { _ in
                             DispatchQueue.main.async {
                                 proxy.scrollTo(stdoutItems.last!.id, anchor: .bottom)
@@ -47,12 +46,11 @@ struct LogView: View {
                             ForEach(Array(logger.logItems.enumerated()), id: \.element.id) { index, log in
                                 StepCardView(
                                     index: index,
-                                    total: logger.logItems.count,
                                     log: log,
                                     isLast: index == logger.logItems.count - 1
                                 )
                                 .id(log.id)
-                                .padding(.horizontal, 4)
+                                .padding(.horizontal, 6)
                                 .transition(.asymmetric(
                                     insertion: .move(edge: .bottom).combined(with: .opacity),
                                     removal: .opacity
@@ -60,14 +58,13 @@ struct LogView: View {
                             }
                         }
                         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: logger.logItems.count)
-                        .onChange(of: geometry.size.height) { newHeight in
+                        .onChange(of: geometry.size.height) { _ in
                             DispatchQueue.main.async {
                                 withAnimation {
                                     proxy.scrollTo(logger.logItems.last?.id, anchor: .bottom)
                                 }
                             }
                         }
-                        
                         .onChange(of: logger.logItems) { _ in
                             DispatchQueue.main.async {
                                 withAnimation {
@@ -81,7 +78,7 @@ struct LogView: View {
                     if verbose {
                         pipe.fileHandleForReading.readabilityHandler = { fileHandle in
                             let data = fileHandle.availableData
-                            if data.isEmpty  { // end-of-file condition
+                            if data.isEmpty  {
                                 fileHandle.readabilityHandler = nil
                                 sema.signal()
                             } else {
@@ -94,7 +91,6 @@ struct LogView: View {
                                 }
                             }
                         }
-                        // Redirect
                         print("Redirecting stdout")
                         setvbuf(stdout, nil, _IONBF, 0)
                         dup2(pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
@@ -117,9 +113,14 @@ struct LogView: View {
 
 struct StepCardView: View {
     let index: Int
-    let total: Int
     let log: LogItem
     let isLast: Bool
+    
+    // 统一的深蓝背景色（匹配主背景）
+    private let cardBg = Color(red: 0.12, green: 0.13, blue: 0.22).opacity(0.55)
+    private let cardBorder = Color.white.opacity(0.06)
+    // 连接线用非常淡的蓝灰
+    private let lineColor = Color.white.opacity(0.10)
     
     private var stepColor: Color {
         switch log.type {
@@ -130,7 +131,7 @@ struct StepCardView: View {
         case .error:
             return Color.red
         case .info:
-            return Color(red: 0.23, green: 0.51, blue: 0.96)
+            return Color(red: 0.35, green: 0.60, blue: 0.95)
         }
     }
     
@@ -151,54 +152,50 @@ struct StepCardView: View {
         HStack(alignment: .top, spacing: 0) {
             // 左侧：步骤序号 + 连接线
             VStack(spacing: 0) {
-                // 步骤序号圆点
                 ZStack {
                     Circle()
-                        .fill(stepColor.opacity(0.15))
-                        .frame(width: 28, height: 28)
+                        .fill(stepColor.opacity(0.18))
+                        .frame(width: 26, height: 26)
                     Text("\(index + 1)")
                         .font(.system(size: 11, weight: .bold, design: .rounded))
                         .foregroundColor(stepColor)
                 }
                 
-                // 连接线（最后一项不显示）
                 if !isLast {
                     Rectangle()
-                        .fill(stepColor.opacity(0.25))
-                        .frame(width: 2)
-                        .frame(maxHeight: .infinity)
-                        .padding(.vertical, 2)
+                        .fill(lineColor)
+                        .frame(width: 1.5)
+                        .frame(height: 16)
                 }
             }
-            .frame(width: 36)
+            .frame(width: 34)
+            .padding(.top, 2)
             
             // 右侧：卡片内容
             HStack(spacing: 10) {
-                // 图标
                 Image(systemName: iconName)
-                    .font(.system(size: 16))
+                    .font(.system(size: 14))
                     .foregroundColor(stepColor)
                 
-                // 文字
                 Text(log.message)
                     .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.white.opacity(0.92))
                     .lineSpacing(3)
                     .fixedSize(horizontal: false, vertical: true)
                 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(stepColor.opacity(0.08))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(stepColor.opacity(0.18), lineWidth: 1)
-                    )
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(cardBg)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(cardBorder, lineWidth: 1)
             )
         }
-        .padding(.bottom, isLast ? 0 : 10)
+        .padding(.bottom, isLast ? 0 : 6)
     }
 }
