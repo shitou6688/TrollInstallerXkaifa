@@ -431,25 +431,11 @@ struct MainView: View {
                                 .disabled(!device.isSupported)
                         }
                         ZStack {
-                            // iOS 26 风格玻璃面板
+                            // 按钮区背景：简洁暗底，不用玻璃
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.white.opacity(0.10))
+                                .fill(Color.white.opacity(0.05))
                                 .frame(maxWidth: geometry.size.width / 1.18)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .fill(LinearGradient(
-                                            colors: [Color.white.opacity(0.08), Color.clear],
-                                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.3)
-                                        ))
-                                        .frame(maxWidth: geometry.size.width / 1.18)
-                                        .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
-                                )
-                                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
                             
                             if isInstalling {
