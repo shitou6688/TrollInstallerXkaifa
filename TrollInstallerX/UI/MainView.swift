@@ -380,6 +380,10 @@ struct MainView: View {
                 ZStack {
                     LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
+                    
+                    // 背景光斑
+                    StaticOrbsView().ignoresSafeArea()
+                    
                     VStack {
                         VStack {
                             Image("Icon")
@@ -546,5 +550,31 @@ struct MainView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
+    }
+}
+
+// MARK: - 背景光斑组件
+
+struct StaticOrbsView: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.10))
+                .frame(width: 200, height: 200)
+                .blur(radius: 60)
+                .offset(x: -60, y: -100)
+            
+            Circle()
+                .fill(Color(red: 0.31, green: 0.40, blue: 0.90).opacity(0.08))
+                .frame(width: 150, height: 150)
+                .blur(radius: 50)
+                .offset(x: 70, y: 20)
+            
+            Circle()
+                .fill(Color(red: 0.15, green: 0.55, blue: 0.85).opacity(0.06))
+                .frame(width: 160, height: 160)
+                .blur(radius: 70)
+                .offset(x: -20, y: 140)
+        }
     }
 }
