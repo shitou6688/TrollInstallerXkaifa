@@ -431,25 +431,25 @@ struct MainView: View {
                                 .disabled(!device.isSupported)
                         }
                         ZStack {
-                            // 玻璃面板背景
+                            // iOS 26 风格玻璃面板
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.white.opacity(0.06))
+                                .fill(Color.white.opacity(0.10))
                                 .frame(maxWidth: geometry.size.width / 1.18)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                                        .stroke(Color.white.opacity(0.14), lineWidth: 1)
                                 )
                                 .overlay(
-                                    // 顶部玻璃高光
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                                         .fill(LinearGradient(
-                                            colors: [Color.white.opacity(0.04), Color.clear],
-                                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.25)
+                                            colors: [Color.white.opacity(0.08), Color.clear],
+                                            startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.3)
                                         ))
                                         .frame(maxWidth: geometry.size.width / 1.18)
                                         .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
                                 )
+                                .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
                             
                             if isInstalling {
