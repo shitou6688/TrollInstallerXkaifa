@@ -432,14 +432,6 @@ struct MainView: View {
                             .frame(maxWidth: geometry.size.width / 1.2)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
-                        if !isInstalling {
-                            MenuView(isShowingSettings: $isShowingSettings, isShowingCredits: $isShowingCredits, isShowingMDCAlert: $isShowingMDCAlert, isShowingOTAAlert: $isShowingOTAAlert, device: device)
-                                .frame(maxWidth: geometry.size.width / 1.2, maxHeight: geometry.size.height / 4)
-                                .transition(.scale)
-                                .padding(.bottom, 56)
-                                .shadow(radius: 10)
-                                .disabled(!device.isSupported)
-                        }
                         ZStack {
                             // 按钮区背景：简洁暗底，不用玻璃
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -475,7 +467,7 @@ struct MainView: View {
                                             Image(systemName: "arrow.down.to.line.compact")
                                                 .font(.system(size: 15, weight: .semibold))
                                             Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                                                .font(.system(size: 21, weight: .semibold, design: .rounded))
                                         }
                                         .foregroundColor(device.isSupported ? .white : .secondary)
                                         .padding()
