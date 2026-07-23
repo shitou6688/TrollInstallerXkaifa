@@ -12,23 +12,19 @@ struct PersistenceHelperView: View {
     let allowNoPersistenceHelper: Bool
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack {
                 Text("持久性助手")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .font(.system(size: 23, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
-                    .padding(.top, 8)
-                
                 if allowNoPersistenceHelper {
                     Text("如果您已经安装了一个持久性助手，请滚动到底部。")
-                        .font(.system(size: 15, weight: .regular, design: .rounded))
-                        .foregroundColor(.white.opacity(0.80))
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(.white)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 12)
                 }
             }
-            .padding(.vertical, 12)
-            
-            VStack(spacing: 16) {
+            .padding()
+            VStack(spacing: 20) {
                 ForEach(persistenceHelperCandidates, id: \.self) { candidate in
                     Button(action: {
                         TIXDefaults().setValue(candidate.bundleIdentifier, forKey: "persistenceHelper")
@@ -36,12 +32,12 @@ struct PersistenceHelperView: View {
                             isShowingHelperAlert = false
                         }
                     }, label: {
-                        HStack(spacing: 12) {
+                        HStack {
                             if let image = candidate.icon {
                                 Image(uiImage: image)
                                     .resizable()
-                                    .frame(width: 48, height: 48)
-                                    .cornerRadius(12)
+                                    .frame(width: 44, height: 44)
+                                    .cornerRadius(10)
                             } else {
 //                                Image(systemName: "gear")
 //                                    .resizable()
@@ -49,56 +45,35 @@ struct PersistenceHelperView: View {
 //                                    .cornerRadius(10)
                             }
                             Text(candidate.displayName)
-                                .font(.system(size: 18, weight: .medium, design: .rounded))
+                                .font(.system(size: 20, weight: .regular, design: .rounded))
                                 .foregroundColor(.white)
+                                .padding(.leading)
                             Spacer()
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.white.opacity(0.06))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.white.opacity(0.10), lineWidth: 1)
-                        )
                     })
                 }
-                
                 if allowNoPersistenceHelper {
                     Divider()
-                        .padding(.vertical, 4)
-                    
                     Button(action: {
                         TIXDefaults().setValue("", forKey: "persistenceHelper")
                         withAnimation {
                             isShowingHelperAlert = false
                         }
                     }, label: {
-                        HStack(spacing: 12) {
+                        HStack {
                             Image(systemName: "xmark.circle")
                                 .resizable()
-                                .frame(width: 48, height: 48)
-                                .cornerRadius(12)
+                                .frame(width: 44, height: 44)
+                                .cornerRadius(10)
                                 .foregroundColor(.red)
                             Text("没有持久性助手")
-                                .font(.system(size: 18, weight: .medium, design: .rounded))
+                                .font(.system(size: 20, weight: .regular, design: .rounded))
                                 .foregroundColor(.white)
+                                .padding(.leading)
                             Spacer()
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(Color.white.opacity(0.06))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.white.opacity(0.10), lineWidth: 1)
-                        )
                     })
-                    .padding(.bottom, 8)
+                    .padding(.bottom)
                 }
             }
         }
