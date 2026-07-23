@@ -508,17 +508,17 @@ struct MainView: View {
                         }
                         ZStack {
                             // 按钮区背景：简洁暗底，不用玻璃
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
                                 .fill(Color.white.opacity(0.04))
-                                .frame(maxWidth: geometry.size.width / 1.18)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 64)
+                                .frame(maxWidth: geometry.size.width / 1.15)
+                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.5 : 64)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
 
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
-                                    .padding(12)
-                                    .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: geometry.size.height / 1.75)
+                                    .padding(16)
+                                    .frame(maxWidth: geometry.size.width / 1.18)
+                                    .frame(maxHeight: geometry.size.height / 1.55)
                                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                             } else {
                                 // 脉冲发光按钮
