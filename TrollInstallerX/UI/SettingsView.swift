@@ -15,25 +15,30 @@ struct SettingsView: View {
     @AppStorage("verbose", store: TIXDefaults()) var verbose: Bool = false
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 16) {
+            // 标题
+            Text("设置")
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+                .padding(.top, 8)
+            
             Button(action: {
                 UIImpactFeedbackGenerator().impactOccurred()
                 let docsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
                 try? FileManager.default.removeItem(atPath: docsDir.path + "/kernelcache")
             }, label: {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10)
-                        .frame(maxWidth: 225)
-                        .frame(maxHeight: 40)
-                        .foregroundColor(.white.opacity(0.2))
-                        .shadow(radius: 10)
+                    RoundedRectangle(cornerRadius: 12)
+                        .frame(maxWidth: 240)
+                        .frame(maxHeight: 44)
+                        .foregroundColor(.white.opacity(0.12))
                     Text("清除内核缓存")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))
                         .foregroundColor(.white)
-                        .padding()
                 }
             })
-            .padding()
+            .padding(.vertical, 8)
+            
             if smith.supports(device) || physpuppet.supports(device) || darksword.supports(device) {
                 Picker("Kernel exploit", selection: $exploitFlavour) {
                     Text("landa").foregroundColor(.white).tag("landa")
@@ -49,8 +54,9 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 .colorMultiply(.white)
-                .padding()
+                .padding(.horizontal, 8)
             }
+            
             VStack {
                 Toggle(isOn: $verbose, label: {
                     Text("详细日志记录")
@@ -58,7 +64,7 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                 })
             }
-            .padding()
+            .padding(.horizontal, 8)
             
         }
         .onAppear {

@@ -103,121 +103,185 @@ struct ActivationView: View {
     }
 
     private var activationFormView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             Spacer()
-            Text("巨魔安装器").font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
-            Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
-            VStack(spacing: 16) {
+            
+            // 图标与标题
+            Image("Icon")
+                .resizable()
+                .cornerRadius(28)
+                .frame(width: 120, height: 120)
+                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.40), radius: 30, x: 0, y: 10)
+                .padding(.bottom, 8)
+            
+            VStack(spacing: 8) {
+                Text("巨魔安装器")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                Text("请输入卡密以激活使用")
+                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                    .foregroundColor(Color(white: 0.55))
+            }
+            
+            // 输入框与按钮卡片
+            VStack(spacing: 18) {
                 TextField("请输入卡密", text: $kamiText)
-                    .padding(12).background(Color.white.opacity(0.10)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
-                if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
+                    .padding(14)
+                    .background(Color.white.opacity(0.08))
+                    .cornerRadius(12)
+                    .foregroundColor(.white)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    )
+                
+                if !errorMessage.isEmpty {
+                    Text(errorMessage)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 4)
+                }
+                
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     verifyCard()
                 }) {
                     Group {
-                        if isLoading { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white)) }
-                        else { Text("验证激活").fontWeight(.semibold).foregroundColor(.white) }
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("验证激活")
+                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
+                        }
                     }
-                    .frame(maxWidth: .infinity).padding()
-                    .background(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                    .cornerRadius(12)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.23, green: 0.51, blue: 0.96),
+                                Color(red: 0.31, green: 0.40, blue: 0.90)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.35), radius: 16, x: 0, y: 6)
                     .contentShape(Rectangle())
                 }
                 .disabled(isLoading || kamiText.isEmpty)
                 .scaleEffect(isPressed ? 0.96 : 1.0)
                 .animation(.easeInOut(duration: 0.15), value: isPressed)
             }
-            .padding(20)
+            .padding(22)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.08))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color.white.opacity(0.06))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
             )
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 28)
+            
             Spacer()
-            VStack(spacing: 6) {
-                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
-                Text("设备码：\(getDeviceCode())").font(.caption2).foregroundColor(.gray)
-            }.padding(.bottom, 30)
+            
+            // 底部信息
+            VStack(spacing: 8) {
+                Text("版本：1.0")
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
+                Text("设备码：\(getDeviceCode())")
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.bottom, 30)
         }
     }
 
     private var computerAssistView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 28) {
             Spacer()
 
             Image(systemName: "desktopcomputer")
-                .font(.system(size: 56))
+                .font(.system(size: 64))
                 .foregroundColor(.blue)
-                .padding(.bottom, 8)
+                .padding(.bottom, 12)
 
             Text("巨魔安装器")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
 
             Text("当前系统版本需要特殊处理")
-                .font(.title3)
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(.white.opacity(0.9))
 
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 HStack {
                     Text("当前版本")
-                        .font(.subheadline)
+                        .font(.system(size: 15, weight: .regular))
                         .foregroundColor(.white.opacity(0.6))
                     Spacer()
                     Text("iOS \(currentVersion)")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.blue)
                 }
             }
-            .padding(16)
-            .background(Color(white: 0.1))
-            .cornerRadius(12)
+            .padding(18)
+            .background(Color(white: 0.08))
+            .cornerRadius(14)
             .padding(.horizontal, 36)
 
             Text("当前版本需要特殊处理，请联系客服")
-                .font(.subheadline)
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.orange)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
 
             Spacer()
 
-            VStack(spacing: 6) {
-                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
+            VStack(spacing: 8) {
+                Text("版本：1.0")
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
             }.padding(.bottom, 30)
         }
     }
 
     private var unsupportedView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 28) {
             Spacer()
 
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 56))
+                .font(.system(size: 64))
                 .foregroundColor(.orange)
-                .padding(.bottom, 8)
+                .padding(.bottom, 12)
 
             Text("巨魔安装器")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 32, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
 
             Text("当前系统版本不支持")
-                .font(.title3)
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundColor(.white.opacity(0.9))
 
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 HStack {
                     Text("当前版本")
-                        .font(.subheadline)
+                        .font(.system(size: 15, weight: .regular))
                         .foregroundColor(.white.opacity(0.6))
                     Spacer()
                     Text("iOS \(currentVersion)")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.orange)
                 }
 
@@ -227,24 +291,26 @@ struct ActivationView: View {
 
                 HStack {
                     Text("支持范围")
-                        .font(.subheadline)
+                        .font(.system(size: 15, weight: .regular))
                         .foregroundColor(.white.opacity(0.6))
                     Spacer()
                     Text("iOS 14.0 - 16.6.1")
-                        .font(.subheadline.weight(.semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.green)
                 }
             }
-            .padding(16)
-            .background(Color(white: 0.1))
-            .cornerRadius(12)
+            .padding(18)
+            .background(Color(white: 0.08))
+            .cornerRadius(14)
             .padding(.horizontal, 36)
 
 
             Spacer()
 
-            VStack(spacing: 6) {
-                Text("版本：1.0").font(.caption2).foregroundColor(.gray)
+            VStack(spacing: 8) {
+                Text("版本：1.0")
+                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
             }.padding(.bottom, 30)
         }
     }
@@ -395,53 +461,62 @@ struct MainView: View {
                     StarryOverlay().ignoresSafeArea()
 
                     VStack {
-                        VStack {
+                        VStack(spacing: 16) {
+                            // 图标
                             Image("Icon")
                                 .resizable()
-                                .cornerRadius(24)
-                                .frame(width: 100, height: 100)
-                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 24, x: 0, y: 8)
+                                .cornerRadius(28)
+                                .frame(width: 120, height: 120)
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.40), radius: 30, x: 0, y: 10)
+                            
+                            // 标题
                             Text("巨魔安装器")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
-                                .padding(.top, 4)
+                                .padding(.top, 8)
+                            
+                            // 版本号
                             Text("版本号：1.0")
                                 .font(.system(size: 14, weight: .regular, design: .rounded))
                                 .foregroundColor(.white.opacity(0.45))
                         }
-                        .padding(.vertical)
+                        .padding(.vertical, 20)
                         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowDownloadHint"))) { _ in
                             withAnimation { showDownloadHint = true }
                         }
                         if isInstalling && showDownloadHint {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 13))
                                     .foregroundColor(.orange)
                                 Text("如长时间无响应，请关机重启设备后再来安装")
-                                    .font(.system(size: 11, weight: .medium, design: .rounded))
-                                    .foregroundColor(.orange.opacity(0.9))
+                                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                                    .foregroundColor(.orange.opacity(0.95))
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.orange.opacity(0.12))
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color.orange.opacity(0.10))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.orange.opacity(0.20), lineWidth: 1)
                             )
                             .frame(maxWidth: geometry.size.width / 1.2)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                         ZStack {
                             // 按钮区背景：简洁暗底，不用玻璃
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color.white.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(Color.white.opacity(0.04))
                                 .frame(maxWidth: geometry.size.width / 1.18)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 58)
+                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.7 : 64)
                                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
 
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
-                                    .padding(10)
+                                    .padding(12)
                                     .frame(maxWidth: geometry.size.width / 1.2)
                                     .frame(maxHeight: geometry.size.height / 1.75)
                                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
@@ -449,11 +524,11 @@ struct MainView: View {
                                 // 脉冲发光按钮
                                 ZStack {
                                     // 外发光脉冲层
-                                    RoundedRectangle(cornerRadius: 16)
+                                    RoundedRectangle(cornerRadius: 18)
                                         .fill(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                                        .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 60)
-                                        .blur(radius: 12)
-                                        .opacity(device.isSupported ? 0.35 : 0)
+                                        .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 64)
+                                        .blur(radius: 14)
+                                        .opacity(device.isSupported ? 0.40 : 0)
 
                                     Button(action: {
                                         if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
@@ -462,22 +537,22 @@ struct MainView: View {
                                             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { isInstalling = true }
                                         }
                                     }, label: {
-                                        HStack(spacing: 6) {
+                                        HStack(spacing: 8) {
                                             Image(systemName: "arrow.down.to.line.compact")
-                                                .font(.system(size: 15, weight: .semibold))
+                                                .font(.system(size: 16, weight: .semibold))
                                             Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                                .font(.system(size: 21, weight: .semibold, design: .rounded))
+                                                .font(.system(size: 22, weight: .semibold, design: .rounded))
                                         }
                                         .foregroundColor(device.isSupported ? .white : .secondary)
                                         .padding()
                                         .frame(maxWidth: geometry.size.width / 1.2)
-                                        .frame(maxHeight: 60)
+                                        .frame(maxHeight: 64)
                                         .contentShape(Rectangle())
                                         .background(
                                             LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
                                         )
-                                        .cornerRadius(14)
-                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.30), radius: 20, x: 0, y: 8)
+                                        .cornerRadius(16)
+                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.40), radius: 24, x: 0, y: 10)
                                     })
                                     .scaleEffect(isInstalling ? 0.95 : 1.0)
                                 }

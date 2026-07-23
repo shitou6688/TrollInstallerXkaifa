@@ -19,7 +19,7 @@ struct PopupView<Content: View>: View {
     var body: some View {
         ZStack {
             // 半透明遮罩
-            Color.black.opacity(0.45)
+            Color.black.opacity(0.50)
                 .ignoresSafeArea()
                 .onTapGesture {
                     if shouldAllowDismiss {
@@ -33,17 +33,17 @@ struct PopupView<Content: View>: View {
             VStack {
                 content
             }
-            .padding(22)
-            .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
+            .padding(24)
+            .frame(maxWidth: UIScreen.main.bounds.width * 0.88)
             .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color.white.opacity(0.07))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(Color.white.opacity(0.14), lineWidth: 1)
             )
-            .shadow(color: .black.opacity(0.3), radius: 16, x: 0, y: 6)
+            .shadow(color: .black.opacity(0.35), radius: 20, x: 0, y: 8)
             .transition(.scale(scale: 0.92).combined(with: .opacity))
         }
     }

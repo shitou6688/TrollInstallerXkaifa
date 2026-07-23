@@ -31,31 +31,28 @@ let credits: [Credit] = [
 struct CreditsView: View {
     var body: some View {
         
-        VStack {
+        VStack(spacing: 20) {
             Text("鸣谢")
-                .font(.system(size: 23, weight: .semibold, design: .rounded))
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
-                .padding()
-            HStack {
-                VStack {
-                    
-                    VStack(spacing: 3) {
-                        ForEach(0..<(credits.count / 2)) { index in
-                            CreditRow(credit: credits[index])
-                        }
+                .padding(.top, 8)
+            
+            HStack(alignment: .top, spacing: 16) {
+                VStack(spacing: 4) {
+                    ForEach(0..<(credits.count / 2)) { index in
+                        CreditRow(credit: credits[index])
                     }
                 }
                 
-                VStack {
-                    
-                    VStack(spacing: 3) {
-                        ForEach((credits.count / 2)..<credits.count) { index in
-                            CreditRow(credit: credits[index])
-                        }
+                VStack(spacing: 4) {
+                    ForEach((credits.count / 2)..<credits.count) { index in
+                        CreditRow(credit: credits[index])
                     }
                 }
             }
+            .padding(.horizontal, 8)
         }
+        .padding(.vertical, 8)
     }
 }
 
@@ -63,21 +60,28 @@ struct CreditRow: View {
     let credit: Credit
     
     var body: some View {
-        HStack {
-            Link(destination: credit.link) {
-                HStack {
-                    Text(credit.name)
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.white)
-                    Image(systemName: "chevron.right")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 10, height: 10)
-                        .foregroundColor(.white)
-                }
+        Link(destination: credit.link) {
+            HStack(spacing: 8) {
+                Text(credit.name)
+                    .font(.system(size: 17, weight: .medium, design: .rounded))
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.white)
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.7))
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.06))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
+            )
         }
     }
 }

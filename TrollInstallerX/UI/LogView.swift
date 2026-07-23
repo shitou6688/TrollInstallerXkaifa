@@ -147,37 +147,38 @@ struct StepCardView: View {
     }
     
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             Image(systemName: iconName)
-                .font(.system(size: 14))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(stepColor)
+                .frame(width: 20)
             
             Text(log.message)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundColor(.white.opacity(0.92))
-                .lineSpacing(3)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundColor(.white.opacity(0.95))
+                .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
             
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(cardBg)
                 // 顶部微高光
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .fill(LinearGradient(
-                        colors: [Color.white.opacity(0.04), Color.clear],
+                        colors: [Color.white.opacity(0.05), Color.clear],
                         startPoint: .top, endPoint: .center
                     ))
             }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: 14)
                 .stroke(cardBorder, lineWidth: 1)
         )
-        .padding(.bottom, isLast ? 0 : 8)
+        .padding(.bottom, isLast ? 0 : 10)
     }
 }
