@@ -41,41 +41,74 @@ struct LogView: View {
                             }
                         }
                     } else {
-                        // 卡片步骤式布局
-                        VStack(spacing: 12) {
-                            // 顶部标题
-                            HStack {
-                                Text("安装进度")
-                                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                                    .foregroundColor(.white)
-                                Spacer()
-                                Text("\(logger.logItems.count) 个步骤")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(.white.opacity(0.6))
+                        // 卡片步骤式布局 - 软研风格
+                        VStack(spacing: 14) {
+                            // 顶部：标题 + 全局进度条
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Text("安装进度")
+                                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                    HStack(spacing: 6) {
+                                        Text("\(logger.logItems.count)")
+                                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                                            .foregroundColor(Color(red: 0.23, green: 0.51, blue: 0.96))
+                                        Text("/ \(max(logger.logItems.count, 5))")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(.white.opacity(0.50))
+                                    }
+                                }
+                                
+                                // 全局进度条
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.white.opacity(0.08))
+                                            .frame(height: 6)
+                                        
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.23, green: 0.51, blue: 0.96),
+                                                    Color(red: 0.31, green: 0.40, blue: 0.90)
+                                                ],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ))
+                                            .frame(width: geo.size.width * CGFloat(logger.logItems.count) / CGFloat(max(logger.logItems.count, 5)))
+                                            .animation(.easeInOut(duration: 0.5), value: logger.logItems.count)
+                                    }
+                                }
+                                .frame(height: 6)
                             }
                             .padding(.horizontal, 4)
                             .padding(.top, 8)
                             
-                            // 步骤卡片列表
-                            ForEach(Array(logger.logItems.enumerated()), id: \.element.id) { index, log in
-                                StepCardView(
-                                    stepNumber: index + 1,
-                                    totalSteps: max(logger.logItems.count, 5),
-                                    log: log,
-                                    isCurrent: index == logger.logItems.count - 1 && !installationFinished,
-                                    isCompleted: index < logger.logItems.count - 1 || installationFinished
-                                )
-                                .id(log.id)
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)),
-                                    removal: .opacity
-                                ))
-                            }
-                            
-                            // 完成提示
-                            if installationFinished {
-                                CompletionCardView()
-                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                            ScrollView {
+                                // 步骤卡片列表
+                                VStack(spacing: 12) {
+                                    ForEach(Array(logger.logItems.enumerated()), id: \.element.id) { index, log in
+                                        StepCardView(
+                                            stepNumber: index + 1,
+                                            totalSteps: max(logger.logItems.count, 5),
+                                            log: log,
+                                            isCurrent: index == logger.logItems.count - 1 && !installationFinished,
+                                            isCompleted: index < logger.logItems.count - 1 || installationFinished
+                                        )
+                                        .id(log.id)
+                                        .transition(.asymmetric(
+                                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.9)),
+                                            removal: .opacity
+                                        ))
+                                    }
+                                    
+                                    // 完成卡片
+                                    if installationFinished {
+                                        CompletionCardView()
+                                            .transition(.move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.95)))
+                                    }
+                                }
                             }
                         }
                         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: logger.logItems.count)

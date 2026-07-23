@@ -454,116 +454,157 @@ struct MainView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
+                // 背景：深色渐变 + 星空
                 ZStack {
-                    LinearGradient(stops: [.init(color: Color(red: 0.04, green: 0.06, blue: 0.10), location: 0), .init(color: Color(red: 0.08, green: 0.11, blue: 0.18), location: 0.35), .init(color: Color(red: 0.12, green: 0.16, blue: 0.25), location: 0.7), .init(color: Color(red: 0.18, green: 0.22, blue: 0.33), location: 1)], startPoint: .top, endPoint: .bottom)
-                        .ignoresSafeArea()
+                    LinearGradient(
+                        stops: [
+                            .init(color: Color(red: 0.05, green: 0.07, blue: 0.12), location: 0),
+                            .init(color: Color(red: 0.10, green: 0.13, blue: 0.20), location: 0.4),
+                            .init(color: Color(red: 0.14, green: 0.18, blue: 0.28), location: 0.75),
+                            .init(color: Color(red: 0.18, green: 0.22, blue: 0.33), location: 1)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .ignoresSafeArea()
                     
                     StarryOverlay().ignoresSafeArea()
-
-                    VStack {
-                        VStack(spacing: 16) {
-                            // 图标
-                            Image("Icon")
-                                .resizable()
-                                .cornerRadius(28)
-                                .frame(width: 120, height: 120)
-                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.40), radius: 30, x: 0, y: 10)
-                            
-                            // 标题
-                            Text("巨魔安装器")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
-                                .padding(.top, 8)
-                            
-                            // 版本号
-                            Text("版本号：1.0")
-                                .font(.system(size: 14, weight: .regular, design: .rounded))
-                                .foregroundColor(.white.opacity(0.45))
-                        }
-                        .padding(.vertical, 20)
-                        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowDownloadHint"))) { _ in
-                            withAnimation { showDownloadHint = true }
-                        }
-                        if isInstalling && showDownloadHint {
-                            HStack(spacing: 8) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.orange)
-                                Text("如长时间无响应，请关机重启设备后再来安装")
-                                    .font(.system(size: 12, weight: .medium, design: .rounded))
-                                    .foregroundColor(.orange.opacity(0.95))
-                            }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.orange.opacity(0.10))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.orange.opacity(0.20), lineWidth: 1)
-                            )
-                            .frame(maxWidth: geometry.size.width / 1.2)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                        }
-                        ZStack {
-                            // 按钮区背景：简洁暗底，不用玻璃
-                            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                                .fill(Color.white.opacity(0.04))
-                                .frame(maxWidth: geometry.size.width / 1.15)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.5 : 64)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isInstalling)
-
-                            if isInstalling {
-                                LogView(installationFinished: $installationFinished)
-                                    .padding(16)
-                                    .frame(maxWidth: geometry.size.width / 1.18)
-                                    .frame(maxHeight: geometry.size.height / 1.55)
-                                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                            } else {
-                                // 脉冲发光按钮
-                                ZStack {
-                                    // 外发光脉冲层
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .fill(LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing))
-                                        .frame(maxWidth: geometry.size.width / 1.2, maxHeight: 64)
-                                        .blur(radius: 14)
-                                        .opacity(device.isSupported ? 0.40 : 0)
-
-                                    Button(action: {
-                                        if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
-                                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                                            showDownloadHint = false
-                                            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) { isInstalling = true }
-                                        }
-                                    }, label: {
-                                        HStack(spacing: 8) {
-                                            Image(systemName: "arrow.down.to.line.compact")
-                                                .font(.system(size: 16, weight: .semibold))
-                                            Text(device.isSupported ? "安装 TrollStore" : "不支持")
-                                                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                                        }
-                                        .foregroundColor(device.isSupported ? .white : .secondary)
-                                        .padding()
-                                        .frame(maxWidth: geometry.size.width / 1.2)
-                                        .frame(maxHeight: 64)
-                                        .contentShape(Rectangle())
-                                        .background(
-                                            LinearGradient(colors: [Color(red: 0.23, green: 0.51, blue: 0.96), Color(red: 0.31, green: 0.40, blue: 0.90)], startPoint: .leading, endPoint: .trailing)
-                                        )
-                                        .cornerRadius(16)
-                                        .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.40), radius: 24, x: 0, y: 10)
-                                    })
-                                    .scaleEffect(isInstalling ? 0.95 : 1.0)
-                                }
-                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                            }
-                        }
-                        .padding(.horizontal, 8)
-                        .disabled(!device.isSupported)
-                    }
-                    .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
                 }
+
+                VStack(spacing: 0) {
+                    // 顶部标题区
+                    VStack(spacing: 16) {
+                        // 图标
+                        Image("Icon")
+                            .resizable()
+                            .cornerRadius(30)
+                            .frame(width: 110, height: 110)
+                            .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.45), radius: 35, x: 0, y: 12)
+                            .padding(.top, 40)
+                        
+                        // 标题
+                        Text("巨魔安装器")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                        
+                        // 版本号
+                        Text("版本 1.0")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(.white.opacity(0.50))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 24)
+                    
+                    Spacer()
+                    
+                    // 中间安装区域
+                    ZStack {
+                        // 背景卡片
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color.white.opacity(0.04))
+                            .frame(height: isInstalling ? geometry.size.height * 0.55 : 72)
+                            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isInstalling)
+
+                        if isInstalling {
+                            // 安装中：显示卡片步骤
+                            LogView(installationFinished: $installationFinished)
+                                .padding(20)
+                                .frame(height: geometry.size.height * 0.52)
+                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        } else {
+                            // 未安装：显示大按钮
+                            Button(action: {
+                                if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
+                                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                    showDownloadHint = false
+                                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) { isInstalling = true }
+                                }
+                            }, label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "arrow.down.to.line.compact")
+                                        .font(.system(size: 18, weight: .semibold))
+                                    Text(device.isSupported ? "安装 TrollStore" : "不支持")
+                                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                                }
+                                .foregroundColor(device.isSupported ? .white : .secondary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 72)
+                                .contentShape(Rectangle())
+                                .background(
+                                    ZStack {
+                                        // 发光层
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.23, green: 0.51, blue: 0.96),
+                                                    Color(red: 0.31, green: 0.40, blue: 0.90)
+                                                ],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ))
+                                            .blur(radius: 16)
+                                            .opacity(device.isSupported ? 0.45 : 0)
+                                        
+                                        // 主按钮
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .fill(LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.23, green: 0.51, blue: 0.96),
+                                                    Color(red: 0.31, green: 0.40, blue: 0.90)
+                                                ],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            ))
+                                    }
+                                )
+                                .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.45), radius: 28, x: 0, y: 12)
+                            })
+                            .disabled(!device.isSupported)
+                            .padding(.horizontal, 8)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    Spacer()
+                    
+                    // 底部提示
+                    if isInstalling && showDownloadHint {
+                        HStack(spacing: 8) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(.orange)
+                            Text("如长时间无响应，请关机重启设备后再来安装")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundColor(.orange.opacity(0.95))
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.orange.opacity(0.10))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.orange.opacity(0.20), lineWidth: 1)
+                        )
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .padding(.bottom, 20)
+                    } else {
+                        VStack(spacing: 8) {
+                            Text("支持 iOS 14.0 - 16.6.1")
+                                .font(.system(size: 12, weight: .regular, design: .rounded))
+                                .foregroundColor(.gray.opacity(0.8))
+                            Text("设备码：\(getDeviceCode())")
+                                .font(.system(size: 11, weight: .regular, design: .rounded))
+                                .foregroundColor(.gray.opacity(0.6))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
+                                .padding(.horizontal, 40)
+                        }
+                        .padding(.bottom, 30)
+                    }
+                }
+                .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
 
                 if isShowingOTAAlert {
                     PopupView(isShowingAlert: $isShowingOTAAlert, content: {
