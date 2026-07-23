@@ -383,7 +383,6 @@ struct MainView: View {
     @State private var isShowingCredits = false
     @State private var installedSuccessfully = false
     @State private var installationFinished = false
-    @State private var showSuccessCelebration = false
     @ObservedObject var helperView = HelperAlert.shared
 
     var body: some View {
@@ -491,12 +490,6 @@ struct MainView: View {
                     .blur(radius: (isShowingMDCAlert || isShowingOTAAlert || isShowingSettings || isShowingCredits || helperView.showAlert) ? 10 : 0)
                 }
 
-                // 安装成功庆祝动画
-                if showSuccessCelebration {
-                    SuccessCelebrationView()
-                        .transition(.opacity)
-                        .zIndex(100)
-                }
                 if isShowingOTAAlert {
                     PopupView(isShowingAlert: $isShowingOTAAlert, content: {
                         TrollHelperOTAView(arm64eVersion: .constant(false))
@@ -546,16 +539,7 @@ struct MainView: View {
                             installedSuccessfully = await doIndirectInstall(device)
                         }
                         installationFinished = true
-                        if installedSuccessfully {
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
-                                showSuccessCelebration = true
-                            }
-                            // 3秒后自动收起庆祝效果回到初始状态
-                            try? await Task.sleep(nanoseconds: 3_000_000_000)
-                            withAnimation(.easeOut(duration: 0.5)) {
-                                showSuccessCelebration = false
-                            }
-                        }
+
                     }
                     UINotificationFeedbackGenerator().notificationOccurred(installedSuccessfully ? .success : .error)
                 }
