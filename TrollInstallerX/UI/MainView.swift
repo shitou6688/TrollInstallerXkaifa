@@ -256,7 +256,7 @@ struct ActivationView: View {
         private func verifyWithApp(_ app: String, encodedKami: String, markcode: String, completion: @escaping (Bool, String?) -> Void) {
         let primaryURL = "https://aa.jm2.top/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)"
         let backupURL = "https://zhika-api.jumo8.top/api/kmlogon?app=\(app)&kami=\(encodedKami)&markcode=\(markcode)"
-        guard let url = URL(string: primaryURL) else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25"); return }
+        guard let url = URL(string: primaryURL) else { completion(false, "网络请求失败"); return }
         tryRequest(url: url, backup: URL(string: backupURL), completion: completion)
     }
     
@@ -273,11 +273,11 @@ struct ActivationView: View {
                             DispatchQueue.main.async {
                                 if let d2 = d2, let j2 = try? JSONSerialization.jsonObject(with: d2) as? [String: Any], let c2 = j2["code"] as? Int {
                                     if c2 == 200 { completion(true, nil) }
-                                    else { completion(false, (j2["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
-                                } else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") }
+                                    else { completion(false, (j2["msg"] as? String) ?? "验证失败") }
+                                } else { completion(false, "网络请求失败") }
                             }
                         }.resume()
-                    } else { completion(false, (json["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
+                    } else { completion(false, (json["msg"] as? String) ?? "验证失败") }
                 }
             } else if let b = backup {
                 var r2 = URLRequest(url: b); r2.timeoutInterval = 10
@@ -285,11 +285,11 @@ struct ActivationView: View {
                     DispatchQueue.main.async {
                         if let d2 = d2, let j2 = try? JSONSerialization.jsonObject(with: d2) as? [String: Any], let c2 = j2["code"] as? Int {
                             if c2 == 200 { completion(true, nil) }
-                            else { completion(false, (j2["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
-                        } else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") }
+                            else { completion(false, (j2["msg"] as? String) ?? "验证失败") }
+                        } else { completion(false, "网络请求失败") }
                     }
                 }.resume()
-            } else { DispatchQueue.main.async { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") } }
+            } else { DispatchQueue.main.async { completion(false, "网络请求失败") } }
         }.resume()
     }
     func verifyCard() {
