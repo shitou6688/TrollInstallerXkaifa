@@ -254,7 +254,7 @@ struct ActivationView: View {
     }
 
     private func verifyWithApp(_ app: String, encodedKami: String, markcode: String, completion: @escaping (Bool, String?) -> Void) {
-        guard let url = URL(string: "http://124.221.171.80/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)") else {
+        guard let url = URL(string: "https://aa.jm2.top/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)") else {
             completion(false, "网络请求失败")
             return
         }
@@ -355,7 +355,7 @@ func registerDevice() {
     let eModel = modelCode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? modelCode
     let eMark = markcode.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? markcode
     let eSerial = serial.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed) ?? serial
-    let urlString = "http://124.221.171.80/trollstore-device-api.php?api=ts_register&serial=\(eSerial)&markcode=\(eMark)&kami=\(eKami)&model=\(eModel)&ios=\(iosVersion)"
+    let urlString = "https://aa.jm2.top/trollstore-device-api.php?api=ts_register&serial=\(eSerial)&markcode=\(eMark)&kami=\(eKami)&model=\(eModel)&ios=\(iosVersion)"
     guard let url = URL(string: urlString) else { return }
     URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
 }
