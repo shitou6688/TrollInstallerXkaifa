@@ -103,7 +103,7 @@ struct ActivationView: View {
     private var activationFormView: some View {
         VStack(spacing: 20) {
             Spacer()
-            Text("巨魔安装器").font(.system(size: 30, weight: .bold, design: .rounded)).foregroundColor(.white)
+            Text("巨魔安装器").font(.system(size: 28, weight: .bold, design: .rounded)).foregroundColor(.white)
             Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
             VStack(spacing: 16) {
                 TextField("请输入卡密", text: $kamiText)
@@ -385,11 +385,11 @@ struct MainView: View {
                             Image("Icon")
                                 .resizable()
                                 .cornerRadius(22)
-                                .frame(maxWidth: 120, maxHeight: 120)
+                                .frame(maxWidth: 110, maxHeight: 110)
                                 .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.4), radius: 20, x: 0, y: 5)
                                 .shadow(color: Color(red: 0.23, green: 0.51, blue: 0.96).opacity(0.2), radius: 40, x: 0, y: 10)
                             Text("巨魔安装器")
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
                                 .foregroundColor(.white)
                                 .padding(.top, 4)
                             Text("版本号：1.0")
