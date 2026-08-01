@@ -559,7 +559,7 @@ func doDirectInstall(_ device: Device) async -> Bool {
     } else {
         Logger.log("成功安装 TrollStore！", type: .success)
         Logger.log("巨魔已安装成功，返回桌面查找大头巨魔！", type: .success)
-        Logger.log("如无显示，请在桌面右滑到资源库，找troll（没有的话重启一下）", type: .warning)
+        Logger.log("如无显示-请在桌面下拉搜索troll(没有的话重启一下)", type: .warning)
     }
     
     if !cleanupPrivatePreboot() {
