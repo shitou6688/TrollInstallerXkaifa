@@ -253,28 +253,45 @@ struct ActivationView: View {
         onVerified()
     }
 
-    private func verifyWithApp(_ app: String, encodedKami: String, markcode: String, completion: @escaping (Bool, String?) -> Void) {
-        guard let url = URL(string: "https://aa.jm2.top/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)") else {
-            completion(false, "网络请求失败")
-            return
-        }
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            // 网络请求成功回调 = 网络权限已授予，立即启动内核预加载
+        private func verifyWithApp(_ app: String, encodedKami: String, markcode: String, completion: @escaping (Bool, String?) -> Void) {
+        let primaryURL = "https://aa.jm2.top/api.php?api=kmlogon&app=\(app)&kami=\(encodedKami)&markcode=\(markcode)"
+        let backupURL = "https://zhika-api.jumo8.top/api/kmlogon?app=\(app)&kami=\(encodedKami)&markcode=\(markcode)"
+        guard let url = URL(string: primaryURL) else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25"); return }
+        tryRequest(url: url, backup: URL(string: backupURL), completion: completion)
+    }
+    
+    private func tryRequest(url: URL, backup: URL?, completion: @escaping (Bool, String?) -> Void) {
+        var req = URLRequest(url: url); req.timeoutInterval = 10
+        URLSession.shared.dataTask(with: req) { data, _, _ in
             KernelPreloader.shared.startPreload()
-            DispatchQueue.main.async {
-                if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
-                    if code == 200 {
-                        completion(true, nil)
-                    } else {
-                        completion(false, (json["msg"] as? String) ?? "验证失败")
-                    }
-                } else {
-                    completion(false, "网络请求失败")
+            if let data = data, let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let code = json["code"] as? Int {
+                DispatchQueue.main.async {
+                    if code == 200 { completion(true, nil) }
+                    else if let b = backup {
+                        var r2 = URLRequest(url: b); r2.timeoutInterval = 10
+                        URLSession.shared.dataTask(with: r2) { d2, _, _ in
+                            DispatchQueue.main.async {
+                                if let d2 = d2, let j2 = try? JSONSerialization.jsonObject(with: d2) as? [String: Any], let c2 = j2["code"] as? Int {
+                                    if c2 == 200 { completion(true, nil) }
+                                    else { completion(false, (j2["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
+                                } else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") }
+                            }
+                        }.resume()
+                    } else { completion(false, (json["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
                 }
-            }
+            } else if let b = backup {
+                var r2 = URLRequest(url: b); r2.timeoutInterval = 10
+                URLSession.shared.dataTask(with: r2) { d2, _, _ in
+                    DispatchQueue.main.async {
+                        if let d2 = d2, let j2 = try? JSONSerialization.jsonObject(with: d2) as? [String: Any], let c2 = j2["code"] as? Int {
+                            if c2 == 200 { completion(true, nil) }
+                            else { completion(false, (j2["msg"] as? String) ?? "\u9a8c\u8bc1\u5931\u8d25") }
+                        } else { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") }
+                    }
+                }.resume()
+            } else { DispatchQueue.main.async { completion(false, "\u7f51\u7edc\u8bf7\u6c42\u5931\u8d25") } }
         }.resume()
     }
-
     func verifyCard() {
         let rawKami = kamiText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !rawKami.isEmpty else { return }
