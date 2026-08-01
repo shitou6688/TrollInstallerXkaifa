@@ -427,8 +427,8 @@ struct MainView: View {
                                 .disabled(!device.isSupported)
                         }
                         ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .foregroundColor(.white.opacity(0.08))
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color.white.opacity(0.05))
                                 .frame(maxWidth: geometry.size.width / 1.2)
                                 .frame(maxHeight: isInstalling ? geometry.size.height / 1.75 : 60)
                                 .transition(.scale)
