@@ -87,7 +87,7 @@ struct ActivationView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
+            LinearGradient(stops: [.init(color: Color(red: 0.04, green: 0.06, blue: 0.10), location: 0), .init(color: Color(red: 0.08, green: 0.11, blue: 0.18), location: 0.35), .init(color: Color(red: 0.12, green: 0.16, blue: 0.25), location: 0.7), .init(color: Color(red: 0.18, green: 0.22, blue: 0.33), location: 1)], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
 
             if showComputerAssist || needsComputerAssist {
@@ -107,7 +107,7 @@ struct ActivationView: View {
             Text("请输入卡密以激活使用").font(.subheadline).foregroundColor(Color(white: 0.6))
             VStack(spacing: 16) {
                 TextField("请输入卡密", text: $kamiText)
-                    .padding(12).background(Color(white: 0.15)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
+                    .padding(12).background(Color.white.opacity(0.10)).cornerRadius(10).foregroundColor(.white).autocapitalization(.none).disableAutocorrection(true)
                 if !errorMessage.isEmpty { Text(errorMessage).font(.caption).foregroundColor(.red) }
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -126,7 +126,7 @@ struct ActivationView: View {
                 .scaleEffect(isPressed ? 0.96 : 1.0)
                 .animation(.easeInOut(duration: 0.15), value: isPressed)
             }
-            .padding(20).background(Color(white: 0.12)).cornerRadius(16).padding(.horizontal, 30)
+            .padding(20).background(Color.white.opacity(0.08)).cornerRadius(16).padding(.horizontal, 30)
             Spacer()
             VStack(spacing: 6) {
                 Text("版本：1.0").font(.caption2).foregroundColor(.gray)
@@ -378,7 +378,7 @@ struct MainView: View {
         GeometryReader { geometry in
             ZStack {
                 ZStack {
-                    LinearGradient(colors: [Color(red: 0.106, green: 0.118, blue: 0.235), Color(red: 0.165, green: 0.188, blue: 0.282)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(stops: [.init(color: Color(red: 0.04, green: 0.06, blue: 0.10), location: 0), .init(color: Color(red: 0.08, green: 0.11, blue: 0.18), location: 0.35), .init(color: Color(red: 0.12, green: 0.16, blue: 0.25), location: 0.7), .init(color: Color(red: 0.18, green: 0.22, blue: 0.33), location: 1)], startPoint: .top, endPoint: .bottom)
                         .ignoresSafeArea()
                     VStack {
                         VStack {
@@ -544,5 +544,51 @@ struct MainView: View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
+    }
+}
+
+
+struct StarryOverlay: View {
+    @State private var drift: CGFloat = 0
+    
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                Ellipse()
+                    .fill(Color(red: 0.04, green: 0.06, blue: 0.15).opacity(0.35))
+                    .frame(width: geo.size.width * 0.85, height: geo.size.height * 0.12)
+                    .blur(radius: 35)
+                    .offset(x: -geo.size.width * 0.05 + drift * 0.3, y: geo.size.height * 0.05)
+                
+                Ellipse()
+                    .fill(Color(red: 0.03, green: 0.05, blue: 0.12).opacity(0.30))
+                    .frame(width: geo.size.width * 0.65, height: geo.size.height * 0.08)
+                    .blur(radius: 25)
+                    .offset(x: geo.size.width * 0.05 + drift * 0.5, y: geo.size.height * 0.15)
+                
+                Circle()
+                    .fill(Color(red: 0.15, green: 0.25, blue: 0.50).opacity(0.12))
+                    .frame(width: 220, height: 220)
+                    .blur(radius: 70)
+                    .offset(x: -geo.size.width * 0.15, y: geo.size.height * 0.3)
+                
+                Circle()
+                    .fill(Color(red: 0.20, green: 0.15, blue: 0.40).opacity(0.10))
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 60)
+                    .offset(x: geo.size.width * 0.2, y: geo.size.height * 0.5)
+                
+                Circle()
+                    .fill(Color(red: 0.10, green: 0.30, blue: 0.45).opacity(0.08))
+                    .frame(width: 250, height: 250)
+                    .blur(radius: 80)
+                    .offset(x: geo.size.width * 0.5, y: geo.size.height * 0.7)
+            }
+            .onAppear {
+                withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
+                    drift = 1
+                }
+            }
+        }
     }
 }
