@@ -447,14 +447,14 @@ struct MainView: View {
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color.white.opacity(0.05))
                                 .frame(maxWidth: geometry.size.width / 1.2)
-                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.65 : 60)
+                                .frame(maxHeight: isInstalling ? geometry.size.height / 1.6 : 60)
                                 .transition(.scale)
                                 .shadow(radius: 10)
                             if isInstalling {
                                 LogView(installationFinished: $installationFinished)
                                     .padding()
                                     .frame(maxWidth: geometry.size.width / 1.2)
-                                    .frame(maxHeight: geometry.size.height / 1.65)
+                                    .frame(maxHeight: geometry.size.height / 1.6)
                             } else {
                                 Button(action: {
                                     if !isShowingCredits && !isShowingSettings && !isShowingMDCAlert && !isShowingOTAAlert {
